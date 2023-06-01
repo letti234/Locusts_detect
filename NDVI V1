@@ -1,0 +1,42 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var geometry = 
+    /* color: #d63000 */
+    /* shown: false */
+    ee.Geometry.Polygon(
+        [[[38.038133420830455, 17.164003049988946],
+          [32.940477170830455, 15.81562839691457],
+          [29.600633420830455, 6.601435764111058],
+          [35.049852170830455, 1.9575059497286653],
+          [43.575242795830455, 0.28796378743387196],
+          [51.749070920830455, 6.601435764111058],
+          [50.694383420830455, 10.425270558351743],
+          [46.211961545830455, 12.83548851820799],
+          [44.629930295830455, 15.138004313825823]]]);
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+
+var modis = ee.ImageCollection('MODIS/061/MOD13Q1')
+                  .filter(ee.Filter.date('2014-01-01', '2014-12-31')) 
+                  .map(function(image){return image.clip(geometry)});
+
+
+var ndvi = modis.select('NDVI');
+
+print(ndvi);
+
+var ndviVis = {
+  min: 0.0,
+  max: 8000.0,
+  palette: [
+    'FFFFFF', 'CE7E45', 'DF923D', 'F1B555', 'FCD163', '99B718', '74A901',
+    '66A000', '529400', '3E8601', '207401', '056201', '004C00', '023B01',
+    '012E01', '011D01', '011301'
+  ],
+};
+Map.setCenter(6.746, 46.529, 2);
+Map.addLayer(ndvi, ndviVis, 'NDVI');
+
+
+var batch = require('users/fitoprincipe/geetools:batch');
+
+
+batch.Download.ImageCollection.toDrive(ndvi, "Ethiopia_NDVI", {scale:250});
