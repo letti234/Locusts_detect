@@ -87,10 +87,21 @@ var ndviApr_4_23 = ndvi.filter(ee.Filter.date('2014-04-09', '2014-04-30'));
 var ndviApr_5_9 = ndvi.filter(ee.Filter.date('2014-05-01', '2014-05-10'));
 var ndviApr_5_25 = ndvi.filter(ee.Filter.date('2014-05-11', '2014-05-30'));
 
-Map.setCenter(42.86, 9.99, 15);
+Map.setCenter(42.95858026941065,9.70979503211276, 15);
 
 Map.addLayer(ndviApr_4_7, ndviVis, 'NDVI April 7th 2014', 1);
 Map.addLayer(ndviApr_4_23, ndviVis, 'NDVI April 23rd 2014', 1);
 Map.addLayer(ndviApr_5_9, ndviVis, 'NDVI May 9th 2014', 1);
 Map.addLayer(ndviApr_5_25, ndviVis, 'NDVI May 25th 2014', 1);
-Map.addLayer(May.draw({color: 'blue'}), {}, 'Sightings May', 1);
+Map.addLayer(May.draw({color: 'blue'}), {}, 'Sightings May 2014', 1);
+
+
+///Two ways to define time of swarm movement: 1) identify 
+//Transform line geometry into a string of points
+
+
+//Match string of path points to nearest date
+
+//Keep only the shortest distances - points orthogonel to the path
+
+//Predict remaining dates given distribution of dates
