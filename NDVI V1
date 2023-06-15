@@ -36,8 +36,9 @@ Map.addLayer(ndvi, ndviVis, 'NDVI', 0);
 var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output")
                 .filterBounds(ETH);
                 
-var sights = ee.FeatureCollection("users/salem043/Locusts/Swarm_Master")
-                .filterBounds(ETH);
+var sights = ee.FeatureCollection("users/salem043/Locusts/swarms_clean")
+                .filterBounds(ETH)
+                .filter(ee.Filter.equals('startYr', 2014));
   
 
 Map.addLayer(fPaths.draw({color: 'red', strokeWidth: 1}), {}, 'Forward paths', 0);
@@ -57,14 +58,39 @@ Map.addLayer(demoP.draw({color: 'red', strokeWidth: 3}), {}, 'Demo forward path'
 //of what is going on.
 
 Map.setCenter(42.736308018880635,9.589702986681909, 10);
+
+var demoP2 = demoP.geometry();
+var buffer = demoP2.buffer(10000);
+
+
 var demoPoints = sights.filterBounds(demoP.geometry().buffer(10000)); //10k buffer
 
 
-Map.addLayer(demoPoints.draw({color: 'blue'}), {}, 'Demo sighting points', 1);
+Map.addLayer(demoPoints.draw({color: 'blue'}), {}, 'Demo sighting points', 0);
+
+//Note: all points recorded in March or May of 2014
 print(demoPoints, "Point data for demo path");
 
+var Mar = demoPoints.filter(ee.Filter.equals('startMo', 3));
+var Apr = demoPoints.filter(ee.Filter.equals('startMo', 4));
+var May = demoPoints.filter(ee.Filter.equals('startMo', 5));
 
-//Map the dates of the sightings - using start month in 2014
+Map.addLayer(Mar.draw({color: 'red'}), {}, 'Sightings March', 0);
+Map.addLayer(Apr.draw({color: 'orange'}), {}, 'Sightings April', 0);
+Map.addLayer(May.draw({color: 'blue'}), {}, 'Sightings May', 0);
 
-//Predict dates for all points on path
 
+//If treatment is mostly in May, let's compare April and May 2014 data for area
+
+var ndviApr_4_7 = ndvi.filter(ee.Filter.date('2014-04-01', '2014-04-08'));
+var ndviApr_4_23 = ndvi.filter(ee.Filter.date('2014-04-09', '2014-04-30'));
+var ndviApr_5_9 = ndvi.filter(ee.Filter.date('2014-05-01', '2014-05-10'));
+var ndviApr_5_25 = ndvi.filter(ee.Filter.date('2014-05-11', '2014-05-30'));
+
+Map.setCenter(42.86, 9.99, 15);
+
+Map.addLayer(ndviApr_4_7, ndviVis, 'NDVI April 7th 2014', 1);
+Map.addLayer(ndviApr_4_23, ndviVis, 'NDVI April 23rd 2014', 1);
+Map.addLayer(ndviApr_5_9, ndviVis, 'NDVI May 9th 2014', 1);
+Map.addLayer(ndviApr_5_25, ndviVis, 'NDVI May 25th 2014', 1);
+Map.addLayer(May.draw({color: 'blue'}), {}, 'Sightings May', 1);
