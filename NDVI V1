@@ -1,4 +1,5 @@
-
+//Locust identification
+//Preliminary work
 
 //Ethiopia shapefile
 
@@ -24,8 +25,7 @@ var ndviVis = {
   ],
 };
 
-Map.setCenter(39.60751790799297,9.180887460082461, 5);
-Map.addLayer(ndvi, ndviVis, 'NDVI', 0);
+//Map.addLayer(ndvi, ndviVis, 'NDVI', 0);
 
 //Download NDVI by layer
 //var batch = require('users/fitoprincipe/geetools:batch');
