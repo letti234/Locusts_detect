@@ -59,8 +59,10 @@ Map.addLayer(demoP.draw({color: 'red', strokeWidth: 3}), {}, 'Demo forward path'
 
 Map.setCenter(42.736308018880635,9.589702986681909, 10);
 
-var demoP2 = demoP.geometry();
-var buffer = demoP2.buffer(10000);
+var demoGeo = demoP.geometry();
+
+print(demoGeo, "Geography of path");
+var buffer = demoGeo.buffer(10000);
 
 
 var demoPoints = sights.filterBounds(demoP.geometry().buffer(10000)); //10k buffer
@@ -89,14 +91,52 @@ var ndviApr_5_25 = ndvi.filter(ee.Filter.date('2014-05-11', '2014-05-30'));
 
 Map.setCenter(42.95858026941065,9.70979503211276, 15);
 
-Map.addLayer(ndviApr_4_7, ndviVis, 'NDVI April 7th 2014', 1);
-Map.addLayer(ndviApr_4_23, ndviVis, 'NDVI April 23rd 2014', 1);
-Map.addLayer(ndviApr_5_9, ndviVis, 'NDVI May 9th 2014', 1);
-Map.addLayer(ndviApr_5_25, ndviVis, 'NDVI May 25th 2014', 1);
-Map.addLayer(May.draw({color: 'blue'}), {}, 'Sightings May 2014', 1);
+///Map.addLayer(ndviApr_4_7, ndviVis, 'NDVI April 7th 2014', 1);
+///Map.addLayer(ndviApr_4_23, ndviVis, 'NDVI April 23rd 2014', 1);
+///Map.addLayer(ndviApr_5_9, ndviVis, 'NDVI May 9th 2014', 1);
+///Map.addLayer(ndviApr_5_25, ndviVis, 'NDVI May 25th 2014', 1);
+//Map.addLayer(May.draw({color: 'blue'}), {}, 'Sightings May 2014', 1);
 
 
-///Two ways to define time of swarm movement: 1) identify 
+///Two ways to define time of swarm movement: 1) (easy) identify the month of
+///most of the sightings along the path. 2) (difficult) match points along the path
+///to nearest sighting date, only keeping the shortest matches. Predict the
+///dates for the remainder of the points
+
+
+///Convert line to points
+
+function lineToPoints(lineString, count) {
+  var length = lineString.length();
+  var step = lineString.length().divide(count);
+  var distances = ee.List.sequence(0, length, step)
+
+  function makePointFeature(coord, offset) {
+    var pt = ee.Algorithms.GeometryConstructors.Point(coord);
+    var coords = pt.coordinates(); // set coords as feature property
+    
+    return new ee.Feature(pt).set({'offset': offset,
+                                  'lat': coords.get(0),
+                                  'lon': coords.get(1)
+    })
+  }
+  
+  var lines = lineString.cutLines(distances).geometries();
+
+  var points = lines.zip(distances).map(function(s) {
+    var line = ee.List(s).get(0);
+    var offset = ee.List(s).get(1)
+    return makePointFeature(ee.Geometry(line).coordinates().get(0), offset)
+  })
+  
+  points = points.add(makePointFeature(lineString.coordinates().get(-1), length))
+
+  return new ee.FeatureCollection(points);
+}
+
+//var pts = lineToPoints(demoGeo, 10);
+//print(pts);
+
 //Transform line geometry into a string of points
 
 
