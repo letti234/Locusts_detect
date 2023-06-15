@@ -11,7 +11,7 @@ var modis = ee.ImageCollection('MODIS/061/MOD13Q1')
 
 
 var ndvi = modis.select('NDVI');
-print(ndvi);
+print(ndvi,"MODIS NDVI raw");
 
 //Nice visual parameters for mapping
 var ndviVis = {
@@ -25,7 +25,7 @@ var ndviVis = {
 };
 
 Map.setCenter(39.60751790799297,9.180887460082461, 5);
-Map.addLayer(ndvi, ndviVis, 'NDVI');
+Map.addLayer(ndvi, ndviVis, 'NDVI', 0);
 
 //Download NDVI by layer
 //var batch = require('users/fitoprincipe/geetools:batch');
@@ -33,10 +33,38 @@ Map.addLayer(ndvi, ndviVis, 'NDVI');
 
 
 //Hysplit model paths and locust sighting points
+var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output")
+                .filterBounds(ETH);
+                
+var sights = ee.FeatureCollection("users/salem043/Locusts/Swarm_Master")
+                .filterBounds(ETH);
+  
+
+Map.addLayer(fPaths.draw({color: 'red', strokeWidth: 1}), {}, 'Forward paths', 0);
+Map.addLayer(sights.draw({color: 'purple'}), {}, 'Sighting points', 0);
 
 
-//Select one path and transform it to points
+//Select one path based on swarm ID and transform it to points
 
+print(fPaths.limit(10), "Forward paths");
+
+var demoP = fPaths.filter(ee.Filter.equals('swarm_id', "21967_tmin5"));
+
+print(demoP.limit(5), "Demo path for practice");
+Map.addLayer(demoP.draw({color: 'red', strokeWidth: 3}), {}, 'Demo forward path', 1);
+
+//Identify sighting points around the path - this is just to help keep track 
+//of what is going on.
+
+Map.setCenter(42.736308018880635,9.589702986681909, 10);
+var demoPoints = sights.filterBounds(demoP.geometry().buffer(10000)); //10k buffer
+
+
+Map.addLayer(demoPoints.draw({color: 'blue'}), {}, 'Demo sighting points', 1);
+print(demoPoints, "Point data for demo path");
+
+
+//Map the dates of the sightings - using start month in 2014
 
 //Predict dates for all points on path
 
