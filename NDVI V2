@@ -12,7 +12,7 @@ var modis = ee.ImageCollection('MODIS/061/MOD13Q1')
 
 
 var ndvi = modis.select('NDVI');
-print(ndvi,"MODIS NDVI raw");
+///print(ndvi,"MODIS NDVI raw");
 
 //Nice visual parameters for mapping
 var ndviVis = {
@@ -72,9 +72,9 @@ var mergeLinesBySwarmId = function(collection) {
 var mergedFeatures = mergeLinesBySwarmId(lines);
 
 // Print the merged LineString features
-print('Merged Lines:', mergedFeatures);
+//print('Merged Lines:', mergedFeatures);
 
-Map.addLayer(mergedFeatures.limit(1));
+Map.addLayer(mergedFeatures.limit(1), {}, "Merged feature collection");
 
 
 
@@ -85,13 +85,37 @@ Map.addLayer(mergedFeatures.limit(1));
 
 
 var demoLine = mergedFeatures.filter(ee.Filter.eq('swarm_id', "22049_tmin2")).first();
+var demoLineF = ee.Feature(demoLine);
+//print("Multilinestring as FC", demoLineF);
 
-print("Demonstration line", demoLine);
+var demoLineFC = ee.FeatureCollection([ee.Feature(demoLineF)]);
 
-var bufferDistance = 5;
+//print(demoLineFC);
+Map.addLayer(demoLineFC, {color: 'blue', width: 2}, "Demo as FC", 0);
 
-// Create a buffer around the MultiLineString
-var buffered = demoLine.buffer(bufferDistance);
+
+// Define the buffer distance in meters
+var bufferDistance = 5000;
+
+// Create a function to apply the buffer to each feature
+var addBuffer = function(feature) {
+  var bufferedFeature = feature.buffer(bufferDistance);
+  return bufferedFeature;
+};
+
+// Apply the buffer to the feature collection
+var bufferedCollection = demoLineFC.map(addBuffer);
+
+// Print the resulting feature collection
+print(bufferedCollection);
+
+
+
+
+
+
+
+
 
 //Clip one NDVI to the buffer
 
