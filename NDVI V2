@@ -14,7 +14,7 @@ var modis = ee.ImageCollection('MODIS/061/MOD13Q1')
 
 
 var ndvi = modis.select('NDVI');
-///print(ndvi,"MODIS NDVI raw");
+print(ndvi,"MODIS NDVI raw");
 
 //Nice visual parameters for mapping NDVI
 var ndviVis = {
@@ -119,31 +119,85 @@ Map.addLayer(demoLineFC, {color: 'blue', width: 2}, "Demo as FC", 0);
 
 var gridSize = 1000; // 1 km in meters
 
-// Convert the buffer collection to a feature collection
-var bufferFeatures = ee.FeatureCollection(bufferedCollection);
 
 
-var gridSize = 1000; // 1 km in meters
-
-// Convert the buffer collection to a feature collection
-var bufferFeatures = ee.FeatureCollection(bufferedCollection);
 
 
-// Create a function to generate the grid cells
-var createGridCell = function(feature) {
-  var bounds = feature.geometry().bounds(); // Get the bounds of the feature
-  var gridCells = ee.Geometry.MultiPolygon(bounds.coordinates().map(function(coord) {
-    var topLeft = ee.List(coord.get(0)).get(0);
-    var bottomRight = ee.List(coord.get(2)).get(2);
-    var cellsX = ee.Number(ee.Number(topLeft).subtract(bottomRight).get(0)).divide(gridSize).ceil();
-    var cellsY = ee.Number(ee.Number(topLeft).subtract(bottomRight).get(1)).abs().divide(gridSize).ceil();
-    var polygons = ee.Geometry.Rectangle([topLeft, bottomRight], null, false);
-    var gridCells = polygons.cutLines([cellsX], [cellsY], null);
-    return gridCells;
-  }));
+
+
+
+var tiles = tile(bufferedCollection, 0.05); //TURN BACK TO 0.01 deg!
+
+function tile(region, size_in_degrees) {
+  function tile_geometry(geometry) {
+    var coords = ee.List(geometry.bounds().coordinates().get(0))
+    var min_point = ee.List(coords.get(0))
+    var max_point = ee.List(coords.get(2))
   
-  return gridCells;
-};
+    function sequence(direction) {
+      var start = min_point.get(direction)  
+      var stop = ee.Number(max_point.get(direction))
+      return ee.List.sequence(start, stop, size_in_degrees)
+    }
+  
+    var tiles = sequence(0).map(function (x) {
+      return sequence(1).map(function (y) { 
+          return ee.Feature(ee.Geometry.Rectangle([
+            [ee.Number(x), ee.Number(y)],
+            [
+              ee.Number(x).add(size_in_degrees).min(max_point.get(0)),
+              ee.Number(y).add(size_in_degrees).min(max_point.get(1))
+            ]
+        ]).intersection(geometry, 30))
+      })
+  	}).flatten()
+    return ee.FeatureCollection(tiles).filterBounds(geometry)
+  }
 
-// Apply the createGridCell function to each feature in the buffer feature collection
-var gridCellsCollection = bufferFeatures.map(createGridCell);
+  function tile_feature_collection(feature_collection) {
+    return ee.FeatureCollection(
+      feature_collection.iterate(
+        function (feature, acc) {
+          return ee.FeatureCollection(acc).merge(tile_geometry(ee.Feature(feature).geometry()))
+        }, ee.FeatureCollection([]))
+    )
+  }
+
+  if (region instanceof ee.FeatureCollection)
+    return tile_feature_collection(region)
+  else if (region instanceof ee.Feature)
+    return tile_geometry(region.geometry())
+  else if (region instanceof ee.Geometry)
+    return tile_geometry(region)
+  else
+    throw Error(
+      'region must be ee.FeatureCollection, ee.Feature, or ee.Geometry. Was ' + region
+    )
+}
+
+print(tiles.limit(2), "Sample tiles");
+
+Map.addLayer(tiles.limit(10), {}, "Sample tiles")
+
+
+
+var tiles2 = tiles.limit(10);  ///REMOVE LATER
+
+
+var ndvi1 = ndvi
+  .filter(ee.Filter.date('2000-01-01', '2000-02-18'))
+  .select("NDVI")
+  .mean()
+  .rename("n_2000_02_18");
+
+var tiles2 = tiles2.map(function(feature) {
+  var meanNDVI = ndvi1.reduceRegion({
+    reducer: ee.Reducer.mean(),
+    geometry: feature.geometry(),
+    scale: 250
+  }).get("n_2000_02_18"); // Use the updated band name here
+  
+  return feature.set("meanNDVI", meanNDVI);
+});
+
+print(tiles2.limit(2));
