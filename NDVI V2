@@ -49,9 +49,6 @@ var sights = ee.FeatureCollection("users/salem043/Locusts/swarms_clean")
 //Map.addLayer(sights.draw({color: 'purple'}), {}, 'Sighting points', 0);
 
 
-
-
-// Load the LineString feature collection
 var lines = fPaths;
 
 // Define a function to merge LineString features by 'swarm_id'
@@ -82,10 +79,7 @@ var mergedFeatures = mergeLinesBySwarmId(lines);
 
 
 
-//Demo for one path////////////////////////////////////////////////////////////
-
-//Create a 5 km buffer around the path (can change to a differnt km)
-
+//Create 5 km buffer around one path////////////////////////////////////////////////////////////
 
 var demoLine = mergedFeatures.filter(ee.Filter.eq('swarm_id', "22049_tmin2")).first();
 var demoLineF = ee.Feature(demoLine);
@@ -115,12 +109,15 @@ Map.addLayer(bufferedCollection, {color: 'red', opacity: 0.5}, 'Buffered Feature
 Map.addLayer(demoLineFC, {color: 'blue', width: 2}, "Demo as FC", 0);
 
 
+//Clip one image from NDVI image collection to buffer
+
+var firstImage = ndvi.first();  // Select the first image
+var clippedImage = firstImage.clip(bufferedCollection);
+
+Map.addLayer(clippedImage, ndviVis, 'NDVI');
 
 
 
-
-
-//Clip one NDVI to the buffer
 
 
 
