@@ -104,30 +104,76 @@ var addBuffer = function(feature) {
 var bufferedCollection = demoLineFC.map(addBuffer);
 
 // Print the resulting feature collection
-print(bufferedCollection);
+//print(bufferedCollection);
 Map.addLayer(bufferedCollection, {color: 'red', opacity: 0.5}, 'Buffered Feature');
 Map.addLayer(demoLineFC, {color: 'blue', width: 2}, "Demo as FC", 0);
 
 
-//Clip one image from NDVI image collection to buffer
+//Clip one image from NDVI image collection to buffer /////////////////////////
+//Really a demo
 
-var firstImage = ndvi.first();  // Select the first image
-var clippedImage = firstImage.clip(bufferedCollection);
+//var firstImage = ndvi.first();  // Select the first image
+//var clippedImage = firstImage.clip(bufferedCollection);
 
-Map.addLayer(clippedImage, ndviVis, 'NDVI');
-print("Clipped image", clippedImage);
+//Map.addLayer(clippedImage, ndviVis, 'NDVI');
 
-//Convert the clipped image to a feature collection
-// Load the image
 
-var vectors = clippedImage.reduceToVectors({
-  reducer: ee.Reducer.mean(),
-  geometry: bufferedCollection.geometry(),
-  scale: 250,
-  maxPixels: 1e13,
-});
 
-print("Vectors:", vectors);
+///Create 1 km by 1 km tiles within the buffer
+
+
+var tiles = tile(bufferedCollection, 0.01); //TURN BACK TO 0.01 deg!
+
+function tile(region, size_in_degrees) {
+  function tile_geometry(geometry) {
+    var coords = ee.List(geometry.bounds().coordinates().get(0))
+    var min_point = ee.List(coords.get(0))
+    var max_point = ee.List(coords.get(2))
+  
+    function sequence(direction) {
+      var start = min_point.get(direction)  
+      var stop = ee.Number(max_point.get(direction))
+      return ee.List.sequence(start, stop, size_in_degrees)
+    }
+  
+    var tiles = sequence(0).map(function (x) {
+      return sequence(1).map(function (y) { 
+          return ee.Feature(ee.Geometry.Rectangle([
+            [ee.Number(x), ee.Number(y)],
+            [
+              ee.Number(x).add(size_in_degrees).min(max_point.get(0)),
+              ee.Number(y).add(size_in_degrees).min(max_point.get(1))
+            ]
+        ]).intersection(geometry, 30))
+      })
+  	}).flatten()
+    return ee.FeatureCollection(tiles).filterBounds(geometry)
+  }
+
+  function tile_feature_collection(feature_collection) {
+    return ee.FeatureCollection(
+      feature_collection.iterate(
+        function (feature, acc) {
+          return ee.FeatureCollection(acc).merge(tile_geometry(ee.Feature(feature).geometry()))
+        }, ee.FeatureCollection([]))
+    )
+  }
+
+  if (region instanceof ee.FeatureCollection)
+    return tile_feature_collection(region)
+  else if (region instanceof ee.Feature)
+    return tile_geometry(region.geometry())
+  else if (region instanceof ee.Geometry)
+    return tile_geometry(region)
+  else
+    throw Error(
+      'region must be ee.FeatureCollection, ee.Feature, or ee.Geometry. Was ' + region
+    )
+}
+
+
+
+
 
 
 
