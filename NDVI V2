@@ -115,24 +115,19 @@ var firstImage = ndvi.first();  // Select the first image
 var clippedImage = firstImage.clip(bufferedCollection);
 
 Map.addLayer(clippedImage, ndviVis, 'NDVI');
+print("Clipped image", clippedImage);
 
+//Convert the clipped image to a feature collection
+// Load the image
 
+var vectors = clippedImage.reduceToVectors({
+  reducer: ee.Reducer.mean(),
+  geometry: bufferedCollection.geometry(),
+  scale: 250,
+  maxPixels: 1e13,
+});
 
-
-
-
-
-
-//Transform NDVI into feature collection that includes the swarm id 
-
-
-
-
-
-
-//Collect mean NDVI for each observation 2000-2014 for each grid-cell.
-
-
+print("Vectors:", vectors);
 
 
 
