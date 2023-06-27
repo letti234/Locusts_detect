@@ -187,42 +187,41 @@ var tiles2 = tiles.limit(10);  ///REMOVE LATER
 
 
 
-var ndvi1 = ndvi.filter(ee.Filter.date('2000-01-01', '2000-02-18')).select("NDVI").toBands();
-
-var ndvi1 = ndvi1.rename("n_2000_02_18");
-
-var tiles2= tiles2.map(function(feature) {
-  return feature.set(ndvi1.reduceRegion({
-    reducer: 'mean', geometry: feature.geometry(),
-  }));
-});
-
-
-print(tiles2.limit(2), "Zonal stats for the first image in NDVI");
-
-
-
-
-var tiles2 = tiles2.map(function(feature) {
-  var date = ee.String(feature.get("system:index")).slice(2); // Extract the date from the feature name
+// Function to get the ID of an image in an image collection
+var getImageID = function(imageCollection, index) {
+  // Get the image at the specified index
+  var image = ee.Image(imageCollection.toList(imageCollection.size()).get(index));
   
-  var ndviImage = ndvi
-    .filter(ee.Filter.eq("system:index", date))
-    .select("NDVI")
-    .toBands()
-    .rename("ndvi");
+  // Get the ID of the image
+  var imageID = image.id();
+  
+  // Return the image ID
+  return imageID;
+};
 
-  var meanNDVI = ndviImage.reduceRegion({
-    reducer: ee.Reducer.mean(),
-    geometry: feature.geometry(),
-    scale: 250
-  }).get("ndvi");
+// Usage example:
+var ndviCollection = ee.ImageCollection('MODIS/061/MOD13Q1');
+var imageIndex = 0; // Index of the image you want to retrieve the ID from
 
-  return feature.set("meanNDVI", meanNDVI);
-});
+var imageID = getImageID(ndviCollection, imageIndex);
+print('Image ID:', imageID);
 
-print(tiles2.limit(2));
+//Function must
 
-
-
+ //1. Subset to the image based on its index number
+ 
+ 
+ //2. Obtain the id of that image
+ 
+ 
+ //3. Rename the image the name of the id
+ 
+ 
+ //4. Perform a spatial reduction on the tiles
+ 
+ 
+ 
+ 
+ 
+ 
 
