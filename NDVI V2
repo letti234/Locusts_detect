@@ -42,8 +42,8 @@ var sights = ee.FeatureCollection("users/salem043/Locusts/swarms_clean")
                 .filter(ee.Filter.equals('startYr', 2014));
   
 
-Map.addLayer(fPaths.draw({color: 'red', strokeWidth: 1}), {}, 'Forward paths', 0);
-Map.addLayer(sights.draw({color: 'purple'}), {}, 'Sighting points', 0);
+//Map.addLayer(fPaths.draw({color: 'red', strokeWidth: 1}), {}, 'Forward paths', 0);
+//Map.addLayer(sights.draw({color: 'purple'}), {}, 'Sighting points', 0);
 
 
 
@@ -74,7 +74,7 @@ var mergedFeatures = mergeLinesBySwarmId(lines);
 // Print the merged LineString features
 //print('Merged Lines:', mergedFeatures);
 
-Map.addLayer(mergedFeatures.limit(1), {}, "Merged feature collection");
+//Map.addLayer(mergedFeatures.limit(1), {}, "Merged feature collection");
 
 
 
@@ -108,8 +108,8 @@ var bufferedCollection = demoLineFC.map(addBuffer);
 
 // Print the resulting feature collection
 print(bufferedCollection);
-
-
+Map.addLayer(bufferedCollection, {color: 'red', opacity: 0.5}, 'Buffered Feature');
+Map.addLayer(demoLineFC, {color: 'blue', width: 2}, "Demo as FC", 0);
 
 
 
