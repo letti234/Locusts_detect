@@ -183,21 +183,26 @@ Map.addLayer(tiles.limit(10), {}, "Sample tiles")
 
 var tiles2 = tiles.limit(10);  ///REMOVE LATER
 
-var ndvi1 = ndvi
-  .filter(ee.Filter.date('2000-01-01', '2000-02-18'))
-  .select("NDVI")
-  .first();
 
-var tiles2 = tiles2.map(function(feature) {
-  var meanNDVI = ndvi1
-    .reduceRegion({
-      reducer: ee.Reducer.mean(),
-      geometry: feature.geometry(),
-      scale: 250
-    })
-    .get("NDVI");
-    
-  return feature.set("meanNDVI", meanNDVI);
+
+
+//2002
+var ndvi1 = ndvi.filter(ee.Filter.date('2000-01-01', '2000-02-18')).select("NDVI").toBands();
+
+var ndvi1 = ndvi1.rename("n_2000_02_18");
+
+var tiles2= tiles2.map(function(feature) {
+  return feature.set(ndvi1.reduceRegion({
+    reducer: 'mean', geometry: feature.geometry(),
+  }));
 });
 
+
 print(tiles2.limit(2));
+
+
+
+
+
+
+
