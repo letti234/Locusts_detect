@@ -32,7 +32,8 @@ var ndviVis = {
 //batch.Download.ImageCollection.toDrive(ndvi, "Ethiopia_NDVI", {scale:250});
 
 
-//Hysplit model paths and locust sighting points
+
+//Call on Hysplot model and sightings data
 var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output")
                 .filterBounds(ETH);
                 
@@ -47,109 +48,67 @@ Map.addLayer(sights.draw({color: 'purple'}), {}, 'Sighting points', 0);
 
 
 
+// Load the LineString feature collection
+var lines = fPaths;
 
-
-
-
-
-
-//Select one path based on swarm ID and transform it to points
-
-print(fPaths.limit(10), "Forward paths");
-
-var demoP = fPaths.filter(ee.Filter.equals('swarm_id', "21967_tmin5"));
-
-print(demoP.limit(5), "Demo path for practice");
-Map.addLayer(demoP.draw({color: 'red', strokeWidth: 3}), {}, 'Demo forward path', 1);
-
-//Identify sighting points around the path - this is just to help keep track 
-//of what is going on.
-
-Map.setCenter(42.736308018880635,9.589702986681909, 10);
-
-var demoGeo = demoP.geometry();
-
-print(demoGeo, "Geography of path");
-var buffer = demoGeo.buffer(10000);
-
-
-var demoPoints = sights.filterBounds(demoP.geometry().buffer(10000)); //10k buffer
-
-
-Map.addLayer(demoPoints.draw({color: 'blue'}), {}, 'Demo sighting points', 0);
-
-//Note: all points recorded in March or May of 2014
-print(demoPoints, "Point data for demo path");
-
-var Mar = demoPoints.filter(ee.Filter.equals('startMo', 3));
-var Apr = demoPoints.filter(ee.Filter.equals('startMo', 4));
-var May = demoPoints.filter(ee.Filter.equals('startMo', 5));
-
-Map.addLayer(Mar.draw({color: 'red'}), {}, 'Sightings March', 0);
-Map.addLayer(Apr.draw({color: 'orange'}), {}, 'Sightings April', 0);
-Map.addLayer(May.draw({color: 'blue'}), {}, 'Sightings May', 0);
-
-
-//If treatment is mostly in May, let's compare April and May 2014 data for area
-
-var ndviApr_4_7 = ndvi.filter(ee.Filter.date('2014-04-01', '2014-04-08'));
-var ndviApr_4_23 = ndvi.filter(ee.Filter.date('2014-04-09', '2014-04-30'));
-var ndviApr_5_9 = ndvi.filter(ee.Filter.date('2014-05-01', '2014-05-10'));
-var ndviApr_5_25 = ndvi.filter(ee.Filter.date('2014-05-11', '2014-05-30'));
-
-Map.setCenter(42.95858026941065,9.70979503211276, 15);
-
-///Map.addLayer(ndviApr_4_7, ndviVis, 'NDVI April 7th 2014', 1);
-///Map.addLayer(ndviApr_4_23, ndviVis, 'NDVI April 23rd 2014', 1);
-///Map.addLayer(ndviApr_5_9, ndviVis, 'NDVI May 9th 2014', 1);
-///Map.addLayer(ndviApr_5_25, ndviVis, 'NDVI May 25th 2014', 1);
-//Map.addLayer(May.draw({color: 'blue'}), {}, 'Sightings May 2014', 1);
-
-
-///Two ways to define time of swarm movement: 1) (easy) identify the month of
-///most of the sightings along the path. 2) (difficult) match points along the path
-///to nearest sighting date, only keeping the shortest matches. Predict the
-///dates for the remainder of the points
-
-
-///Convert line to points
-
-function lineToPoints(lineString, count) {
-  var length = lineString.length();
-  var step = lineString.length().divide(count);
-  var distances = ee.List.sequence(0, length, step)
-
-  function makePointFeature(coord, offset) {
-    var pt = ee.Algorithms.GeometryConstructors.Point(coord);
-    var coords = pt.coordinates(); // set coords as feature property
+// Define a function to merge LineString features by 'swarm_id'
+var mergeLinesBySwarmId = function(collection) {
+  // Get the unique 'swarm_id' values
+  var swarmIds = collection.aggregate_array('swarm_id').distinct();
+  
+  // Merge LineString features by 'swarm_id'
+  var mergedLines = swarmIds.map(function(swarmId) {
+    var filtered = collection.filter(ee.Filter.eq('swarm_id', swarmId));
+    var mergedGeometry = ee.Geometry.MultiLineString(filtered.geometry().geometries());
     
-    return new ee.Feature(pt).set({'offset': offset,
-                                  'lat': coords.get(0),
-                                  'lon': coords.get(1)
-    })
-  }
+    return ee.Feature(mergedGeometry).set('swarm_id', swarmId);
+  });
   
-  var lines = lineString.cutLines(distances).geometries();
+  // Convert the merged LineString features to a FeatureCollection
+  return ee.FeatureCollection(mergedLines);
+};
 
-  var points = lines.zip(distances).map(function(s) {
-    var line = ee.List(s).get(0);
-    var offset = ee.List(s).get(1)
-    return makePointFeature(ee.Geometry(line).coordinates().get(0), offset)
-  })
-  
-  points = points.add(makePointFeature(lineString.coordinates().get(-1), length))
+// Merge LineString features by 'swarm_id'
+var mergedFeatures = mergeLinesBySwarmId(lines);
 
-  return new ee.FeatureCollection(points);
-}
+// Print the merged LineString features
+print('Merged Lines:', mergedFeatures);
 
-//var pts = lineToPoints(demoGeo, 10);
-//print(pts);
-
-//Transform line geometry into a string of points
+Map.addLayer(mergedFeatures.limit(1));
 
 
-//Match string of path points to nearest date
 
-//Keep only the shortest distances - points orthogonel to the path
 
-//Predict remaining dates given distribution of dates
+//Demo for one path////////////////////////////////////////////////////////////
+
+//Create a 5 km buffer around the path (can change to a differnt km)
+
+
+var demoLine = mergedFeatures.filter(ee.Filter.eq('swarm_id', "22049_tmin2")).first();
+
+print("Demonstration line", demoLine);
+
+var bufferDistance = 5;
+
+// Create a buffer around the MultiLineString
+var buffered = demoLine.buffer(bufferDistance);
+
+//Clip one NDVI to the buffer
+
+
+
+
+
+//Transform NDVI into feature collection that includes the swarm id 
+
+
+
+
+
+
+//Collect mean NDVI for each observation 2000-2014 for each grid-cell.
+
+
+
+
+
