@@ -1,6 +1,8 @@
 //Locust identification
 //Preliminary work
 
+
+//Call on Ethiopia shapefile and NDVI data //////////////////////////////////
 //Ethiopia shapefile
 
 var ETH = ee.FeatureCollection("FAO/GAUL/2015/level0")
@@ -14,7 +16,7 @@ var modis = ee.ImageCollection('MODIS/061/MOD13Q1')
 var ndvi = modis.select('NDVI');
 ///print(ndvi,"MODIS NDVI raw");
 
-//Nice visual parameters for mapping
+//Nice visual parameters for mapping NDVI
 var ndviVis = {
   min: 0.0,
   max: 8000.0,
@@ -32,8 +34,9 @@ var ndviVis = {
 //batch.Download.ImageCollection.toDrive(ndvi, "Ethiopia_NDVI", {scale:250});
 
 
+//Call on swarm path data and merge by swarm_id /////////////////////////////
 
-//Call on Hysplot model and sightings data
+//Call on Hysplit model and sightings data
 var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output")
                 .filterBounds(ETH);
                 
