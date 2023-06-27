@@ -122,18 +122,28 @@ var gridSize = 1000; // 1 km in meters
 // Convert the buffer collection to a feature collection
 var bufferFeatures = ee.FeatureCollection(bufferedCollection);
 
-// Get the bounding box of the buffer collection
-var boundingBox = bufferFeatures.geometry().bounds();
 
-// Generate the grid of polygons within the bounding box
-var gridCells = ee.Geometry.MultiPolygon.createRegularGrid({
-  boundingBox: boundingBox,
-  gridSize: gridSize,
-  tileScale: 1
-});
+var gridSize = 1000; // 1 km in meters
 
-// Convert the grid cells to a feature collection
-var gridFeatures = ee.FeatureCollection(gridCells);
+// Convert the buffer collection to a feature collection
+var bufferFeatures = ee.FeatureCollection(bufferedCollection);
 
-// Print the grid features
-print(gridFeatures);
+
+// Create a function to generate the grid cells
+var createGridCell = function(feature) {
+  var bounds = feature.geometry().bounds(); // Get the bounds of the feature
+  var gridCells = ee.Geometry.MultiPolygon(bounds.coordinates().map(function(coord) {
+    var topLeft = ee.List(coord.get(0)).get(0);
+    var bottomRight = ee.List(coord.get(2)).get(2);
+    var cellsX = ee.Number(ee.Number(topLeft).subtract(bottomRight).get(0)).divide(gridSize).ceil();
+    var cellsY = ee.Number(ee.Number(topLeft).subtract(bottomRight).get(1)).abs().divide(gridSize).ceil();
+    var polygons = ee.Geometry.Rectangle([topLeft, bottomRight], null, false);
+    var gridCells = polygons.cutLines([cellsX], [cellsY], null);
+    return gridCells;
+  }));
+  
+  return gridCells;
+};
+
+// Apply the createGridCell function to each feature in the buffer feature collection
+var gridCellsCollection = bufferFeatures.map(createGridCell);
