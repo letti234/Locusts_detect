@@ -124,7 +124,11 @@ Map.addLayer(demoLineFC, {color: 'blue', width: 2}, "Demo as FC", 0);
 
 //Map.addLayer(clippedImage, ndviVis, 'NDVI');
 
-
+///////////////////////////////////////////////////////////////////////////////////
+//
+//Produce sample tiles (make smaller later)
+//
+///////////////////////////////////////////////////////////////////////////////////
 
 
 var tiles = tile(bufferedCollection, 0.05); //TURN BACK TO 0.01 deg!
@@ -185,45 +189,13 @@ Map.addLayer(tiles.limit(10), {}, "Sample tiles")
 var tiles2 = tiles.limit(10);  ///REMOVE LATER
 
 
+///////////////////////////////////////////////////////////////////////////////////
+//
+//Get mean NDVI for each date and tile
+//
+///////////////////////////////////////////////////////////////////////////////////
 
-
-
-// Function to get the ID of an image in an image collection
-var getImageID = function(imageCollection, index) {
-  // Get the image at the specified index
-  var image = ee.Image(imageCollection.toList(imageCollection.size()).get(index));
-  
-  // Get the ID of the image
-  var imageID = image.id();
-  
-  // Return the image ID
-  return imageID;
-};
-
-// Usage example:
-var ndviCollection = ee.ImageCollection('MODIS/061/MOD13Q1');
-var imageIndex = 0; // Index of the image you want to retrieve the ID from
-
-//var imageID = getImageID(ndviCollection, imageIndex);
-///print('Image ID:', imageID);
-
-
-
-
-var reduced = ndvi.map(function(image){
-  return image.reduceRegions({
-    collection:tiles2 , 
-    reducer:ee.Reducer.mean(), 
-    scale: 250
-  });
-});
-
-var table = reduced.flatten();
-print(table.limit(1));
-
-
-//Prep NDVI data for reduction, perform reduction ///////////////////////////////////////////////////////////////
-
+//Convert image collection to stack of images
 var ndviStack = ndvi.toBands();
 //print(ndviStack);
 
@@ -241,34 +213,16 @@ var renamedImage = ndviStack.select(bandNames, newBandNames);
 // Print the renamed band names
 //print('Renamed band names:', renamedImage.bandNames());
 
+//Perform the reduction
 var tilesNDVI = renamedImage.reduceRegions(tiles2, ee.Reducer.mean());
 
 print(tilesNDVI.limit(2));
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+//
+//Plot time series: mean NDVI of all tiles over time (looking for 2014 discontinuity
+//as proof of concept)
+//
+///////////////////////////////////////////////////////////////////////////////////
 
-
-// Load the FeatureCollection with reductions
-var featureCollection = tilesNDVI;
-
-// Convert date properties to numeric values
-var numericCollection = featureCollection.map(function(feature) {
-  var datePropertyNames = feature.propertyNames().remove('system:index'); // Exclude 'system:index' from properties
-  var numericProperties = datePropertyNames.map(function(property) {
-    var date = ee.Date(feature.get(property)); // Convert property value to ee.Date
-    var numericValue = date.millis(); // Convert date to milliseconds since Unix epoch
-    return feature.set(property, numericValue);
-  });
-  return ee.Feature(numericProperties);
-});
-
-// Create a chart by date
-var chart = ui.Chart.feature.byFeature({
-  features: numericCollection,
-  xProperty: 'system:index', // Assuming the date is stored in 'system:index'
-  yProperties: numericCollection.first().propertyNames().remove('system:index') // Exclude 'system:index' from properties
-}).setChartType('LineChart');
-
-// Display the chart
-print(chart);
