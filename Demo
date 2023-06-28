@@ -238,7 +238,7 @@ var chart = ui.Chart.image.series({
     lineWidth: 1,
     vAxis: {
       title: 'Rainfall (mm)',
-      ticks: [1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000], 
+      ticks: [2000, 3000, 4000, 5000, 6000, 7000, 8000], 
       gridlines: {color: '#f0f0f0'}
     },
     hAxis: {
