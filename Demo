@@ -1,228 +1,71 @@
-//Locust identification
-//Preliminary work
+// Select a region
+var geometry = ee.Geometry.Point([77.6045, 12.8992]);
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//Call on Ethiopia shapefile and NDVI data
-//
-/////////////////////////////////////////////////////////////////////////////
+// We use the CHIRPS Rainfall Dataset
+var chirps = ee.ImageCollection('UCSB-CHG/CHIRPS/PENTAD');
+print(chirps);
 
-
-//Ethiopia shapefile
-
-var ETH = ee.FeatureCollection("FAO/GAUL/2015/level0")
-.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
-
-//Clipped MODIS NDVI data
-var modis = ee.ImageCollection('MODIS/061/MOD13Q1')
-                  //.map(function(image){return image.clip(ETH)});
-
-
-var ndvi = modis.select('NDVI');
-print(ndvi,"MODIS NDVI raw");
-
-//Nice visual parameters for mapping NDVI
-var ndviVis = {
-  min: 0.0,
-  max: 8000.0,
-  palette: [
-    'FFFFFF', 'CE7E45', 'DF923D', 'F1B555', 'FCD163', '99B718', '74A901',
-    '66A000', '529400', '3E8601', '207401', '056201', '004C00', '023B01',
-    '012E01', '011D01', '011301'
-  ],
-};
-
-//Map.addLayer(ndvi, ndviVis, 'NDVI', 0);
-
-//Download NDVI by layer
-//var batch = require('users/fitoprincipe/geetools:batch');
-//batch.Download.ImageCollection.toDrive(ndvi, "Ethiopia_NDVI", {scale:250});
-
-//////////////////////////////////////////////////////////////////////////////////////////
-//
-//Call on swarm path data and merge by swarm_id 
-//
-/////////////////////////////////////////////////////////////////////////////////////////
-
-
-//Call on Hysplit model and sightings data
-var lines = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output")
-                .filterBounds(ETH);
-                
-//Map.addLayer(fPaths.draw({color: 'red', strokeWidth: 1}), {}, 'Forward paths', 0);
-
-
-
-// Define a function to merge LineString features by 'swarm_id'
-var mergeLinesBySwarmId = function(collection) {
-  // Get the unique 'swarm_id' values
-  var swarmIds = collection.aggregate_array('swarm_id').distinct();
-  
-  // Merge LineString features by 'swarm_id'
-  var mergedLines = swarmIds.map(function(swarmId) {
-    var filtered = collection.filter(ee.Filter.eq('swarm_id', swarmId));
-    var mergedGeometry = ee.Geometry.MultiLineString(filtered.geometry().geometries());
-    
-    return ee.Feature(mergedGeometry).set('swarm_id', swarmId);
+// We will compute the trend of total annual precipitation
+var createAnnualImage = function(year) {
+  var startDate = ee.Date.fromYMD(year, 1, 1);
+  var endDate = startDate.advance(1, 'year');
+  var seasonFiltered = chirps
+    .filter(ee.Filter.date(startDate, endDate));
+  // Calculate total precipitation
+  var total = seasonFiltered.reduce(ee.Reducer.sum()).rename('Precipitation');
+  return total.set({
+    'system:time_start': startDate.millis(),
+    'system:time_end': endDate.millis(),
+    'year': year,
   });
-  
-  // Convert the merged LineString features to a FeatureCollection
-  return ee.FeatureCollection(mergedLines);
 };
 
-// Merge LineString features by 'swarm_id'
-var mergedFeatures = mergeLinesBySwarmId(lines);
+// Aggregate Precipitation Data over 40 years
+var years = ee.List.sequence(1981, 2020);
+var yearlyImages = years.map(createAnnualImage);
+var yearlyCol = ee.ImageCollection.fromImages(yearlyImages);
 
-// Print the merged LineString features
-print('Merged Lines:', mergedFeatures);
+// Create a time-series with sens slope trend
+var chart = ui.Chart.image.series({
+  imageCollection: yearlyCol,
+  region: geometry,
+  reducer: ee.Reducer.mean(),
+  scale: 5566,
+}).setOptions({
+    title: 'Annual Total Precipitation',
+    color: 'blue',
+    pointSize: 3,
+    lineWidth: 1,
+    vAxis: {
+      title: 'Rainfall (mm)',
+      ticks: [0, 200, 400, 600, 800, 1000, 1200, 1400], 
+      gridlines: {color: '#f0f0f0'}
+    },
+    hAxis: {
+      title: 'Year',
+      gridlines: {
+        color: '#f0f0f0',
+        units: {years: { format: 'YYYY'}}
+      }
+    },
 
-//Map.addLayer(mergedFeatures.limit(1), {}, "Merged feature collection");
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//Create 5 km buffer around one path
-//
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-var demoLine = mergedFeatures.filter(ee.Filter.eq('swarm_id', "22077_tmin2")).first();
-var demoLineF = ee.Feature(demoLine);
-//print("Multilinestring as FC", demoLineF);
-
-var demoLineFC = ee.FeatureCollection([ee.Feature(demoLineF)]);
-
-//print(demoLineFC);
-Map.addLayer(demoLineFC, {color: 'blue', width: 2}, "Demo as FC", 0);
-
-
-// Define the buffer distance in meters
-var bufferDistance = 5000;
-
-// Create a function to apply the buffer to each feature
-var addBuffer = function(feature) {
-  var bufferedFeature = feature.buffer(bufferDistance);
-  return bufferedFeature;
-};
-
-// Apply the buffer to the feature collection
-var bufferedCollection = demoLineFC.map(addBuffer);
-
-// Print the resulting feature collection
-//print(bufferedCollection, "Buffer around path");
-Map.addLayer(bufferedCollection, {color: 'red', opacity: 0.5}, 'Buffered Feature');
-Map.addLayer(demoLineFC, {color: 'blue', width: 2}, "Demo as FC", 0);
-
-///////////////////////////////////////////////////////////////////////////////////
-//
-//Demo: Clip one image from NDVI image collection to buffer and map
-//
-///////////////////////////////////////////////////////////////////////////////////
-
-//var firstImage = ndvi.first();  // Select the first image
-//var clippedImage = firstImage.clip(bufferedCollection);
-
-//Map.addLayer(clippedImage, ndviVis, 'NDVI');
-
-///////////////////////////////////////////////////////////////////////////////////
-//
-//Produce sample tiles (make smaller later)
-//
-///////////////////////////////////////////////////////////////////////////////////
-
-
-var tiles = tile(bufferedCollection, 0.05); //TURN BACK TO 0.01 deg!
-
-function tile(region, size_in_degrees) {
-  function tile_geometry(geometry) {
-    var coords = ee.List(geometry.bounds().coordinates().get(0))
-    var min_point = ee.List(coords.get(0))
-    var max_point = ee.List(coords.get(2))
-  
-    function sequence(direction) {
-      var start = min_point.get(direction)  
-      var stop = ee.Number(max_point.get(direction))
-      return ee.List.sequence(start, stop, size_in_degrees)
-    }
-  
-    var tiles = sequence(0).map(function (x) {
-      return sequence(1).map(function (y) { 
-          return ee.Feature(ee.Geometry.Rectangle([
-            [ee.Number(x), ee.Number(y)],
-            [
-              ee.Number(x).add(size_in_degrees).min(max_point.get(0)),
-              ee.Number(y).add(size_in_degrees).min(max_point.get(1))
-            ]
-        ]).intersection(geometry, 30))
-      })
-  	}).flatten()
-    return ee.FeatureCollection(tiles).filterBounds(geometry)
-  }
-
-  function tile_feature_collection(feature_collection) {
-    return ee.FeatureCollection(
-      feature_collection.iterate(
-        function (feature, acc) {
-          return ee.FeatureCollection(acc).merge(tile_geometry(ee.Feature(feature).geometry()))
-        }, ee.FeatureCollection([]))
-    )
-  }
-
-  if (region instanceof ee.FeatureCollection)
-    return tile_feature_collection(region)
-  else if (region instanceof ee.Feature)
-    return tile_geometry(region.geometry())
-  else if (region instanceof ee.Geometry)
-    return tile_geometry(region)
-  else
-    throw Error(
-      'region must be ee.FeatureCollection, ee.Feature, or ee.Geometry. Was ' + region
-    )
-}
-
-print(tiles.limit(2), "Sample tiles");
-
-Map.addLayer(tiles.limit(10), {}, "Sample tiles")
-
-
-
-var tiles2 = tiles.limit(10);  ///REMOVE LATER
-
-
-///////////////////////////////////////////////////////////////////////////////////
-//
-//Get mean NDVI for each date and tile
-//
-///////////////////////////////////////////////////////////////////////////////////
-
-//Convert image collection to stack of images
-var ndviStack = ndvi.toBands();
-//print(ndviStack);
-
-// Get the list of band names
-var bandNames = ndviStack.bandNames();
-// Create a new list of band names with only the date
-var newBandNames = bandNames.map(function(bandName) {
-  var date = ee.String(bandName).slice(0, 10); // Extract the date part
-  return date;
+    legend: {
+      position: 'in'
+    },
+    series: {
+      0: {
+        visibleInLegend: false
+      }
+    },
+    trendlines: {
+      0: {
+        type: 'linear', 
+        color: 'black', 
+        lineWidth: 1,
+        pointSize: 0,
+        visibleInLegend: true,
+        labelInLegend: 'Precipitation Trend',
+      }
+    },
 });
-
-// Rename the bands in the image
-var renamedImage = ndviStack.select(bandNames, newBandNames);
-
-// Print the renamed band names
-//print('Renamed band names:', renamedImage.bandNames());
-
-//Perform the reduction
-var tilesNDVI = renamedImage.reduceRegions(tiles2, ee.Reducer.mean());
-
-print(tilesNDVI.limit(2));
-
-
-///////////////////////////////////////////////////////////////////////////////////
-//
-//Plot time series: mean NDVI of all tiles over time (looking for 2014 discontinuity
-//as proof of concept)
-//
-///////////////////////////////////////////////////////////////////////////////////
-
+print(chart);
