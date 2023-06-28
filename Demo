@@ -1,0 +1,241 @@
+//Locust identification
+//Preliminary work
+
+
+//Call on Ethiopia shapefile and NDVI data //////////////////////////////////
+//Ethiopia shapefile
+
+var ETH = ee.FeatureCollection("FAO/GAUL/2015/level0")
+.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
+
+//Clipped MODIS NDVI data
+var modis = ee.ImageCollection('MODIS/061/MOD13Q1')
+                  //.map(function(image){return image.clip(ETH)});
+
+
+var ndvi = modis.select('NDVI');
+print(ndvi,"MODIS NDVI raw");
+
+//Nice visual parameters for mapping NDVI
+var ndviVis = {
+  min: 0.0,
+  max: 8000.0,
+  palette: [
+    'FFFFFF', 'CE7E45', 'DF923D', 'F1B555', 'FCD163', '99B718', '74A901',
+    '66A000', '529400', '3E8601', '207401', '056201', '004C00', '023B01',
+    '012E01', '011D01', '011301'
+  ],
+};
+
+//Map.addLayer(ndvi, ndviVis, 'NDVI', 0);
+
+//Download NDVI by layer
+//var batch = require('users/fitoprincipe/geetools:batch');
+//batch.Download.ImageCollection.toDrive(ndvi, "Ethiopia_NDVI", {scale:250});
+
+
+//Call on swarm path data and merge by swarm_id /////////////////////////////
+
+//Call on Hysplit model and sightings data
+var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output")
+                .filterBounds(ETH);
+                
+var sights = ee.FeatureCollection("users/salem043/Locusts/swarms_clean")
+                .filterBounds(ETH)
+                .filter(ee.Filter.equals('startYr', 2014));
+  
+
+//Map.addLayer(fPaths.draw({color: 'red', strokeWidth: 1}), {}, 'Forward paths', 0);
+//Map.addLayer(sights.draw({color: 'purple'}), {}, 'Sighting points', 0);
+
+
+var lines = fPaths;
+
+// Define a function to merge LineString features by 'swarm_id'
+var mergeLinesBySwarmId = function(collection) {
+  // Get the unique 'swarm_id' values
+  var swarmIds = collection.aggregate_array('swarm_id').distinct();
+  
+  // Merge LineString features by 'swarm_id'
+  var mergedLines = swarmIds.map(function(swarmId) {
+    var filtered = collection.filter(ee.Filter.eq('swarm_id', swarmId));
+    var mergedGeometry = ee.Geometry.MultiLineString(filtered.geometry().geometries());
+    
+    return ee.Feature(mergedGeometry).set('swarm_id', swarmId);
+  });
+  
+  // Convert the merged LineString features to a FeatureCollection
+  return ee.FeatureCollection(mergedLines);
+};
+
+// Merge LineString features by 'swarm_id'
+var mergedFeatures = mergeLinesBySwarmId(lines);
+
+// Print the merged LineString features
+//print('Merged Lines:', mergedFeatures);
+
+//Map.addLayer(mergedFeatures.limit(1), {}, "Merged feature collection");
+
+
+
+
+//Create 5 km buffer around one path////////////////////////////////////////////////////////////
+
+var demoLine = mergedFeatures.filter(ee.Filter.eq('swarm_id', "22049_tmin2")).first();
+var demoLineF = ee.Feature(demoLine);
+//print("Multilinestring as FC", demoLineF);
+
+var demoLineFC = ee.FeatureCollection([ee.Feature(demoLineF)]);
+
+//print(demoLineFC);
+Map.addLayer(demoLineFC, {color: 'blue', width: 2}, "Demo as FC", 0);
+
+
+// Define the buffer distance in meters
+var bufferDistance = 5000;
+
+// Create a function to apply the buffer to each feature
+var addBuffer = function(feature) {
+  var bufferedFeature = feature.buffer(bufferDistance);
+  return bufferedFeature;
+};
+
+// Apply the buffer to the feature collection
+var bufferedCollection = demoLineFC.map(addBuffer);
+
+// Print the resulting feature collection
+print(bufferedCollection, "Buffer around path");
+Map.addLayer(bufferedCollection, {color: 'red', opacity: 0.5}, 'Buffered Feature');
+Map.addLayer(demoLineFC, {color: 'blue', width: 2}, "Demo as FC", 0);
+
+
+//Clip one image from NDVI image collection to buffer /////////////////////////
+//Really a demo
+
+//var firstImage = ndvi.first();  // Select the first image
+//var clippedImage = firstImage.clip(bufferedCollection);
+
+//Map.addLayer(clippedImage, ndviVis, 'NDVI');
+
+var gridSize = 1000; // 1 km in meters
+
+
+
+
+
+
+
+
+var tiles = tile(bufferedCollection, 0.05); //TURN BACK TO 0.01 deg!
+
+function tile(region, size_in_degrees) {
+  function tile_geometry(geometry) {
+    var coords = ee.List(geometry.bounds().coordinates().get(0))
+    var min_point = ee.List(coords.get(0))
+    var max_point = ee.List(coords.get(2))
+  
+    function sequence(direction) {
+      var start = min_point.get(direction)  
+      var stop = ee.Number(max_point.get(direction))
+      return ee.List.sequence(start, stop, size_in_degrees)
+    }
+  
+    var tiles = sequence(0).map(function (x) {
+      return sequence(1).map(function (y) { 
+          return ee.Feature(ee.Geometry.Rectangle([
+            [ee.Number(x), ee.Number(y)],
+            [
+              ee.Number(x).add(size_in_degrees).min(max_point.get(0)),
+              ee.Number(y).add(size_in_degrees).min(max_point.get(1))
+            ]
+        ]).intersection(geometry, 30))
+      })
+  	}).flatten()
+    return ee.FeatureCollection(tiles).filterBounds(geometry)
+  }
+
+  function tile_feature_collection(feature_collection) {
+    return ee.FeatureCollection(
+      feature_collection.iterate(
+        function (feature, acc) {
+          return ee.FeatureCollection(acc).merge(tile_geometry(ee.Feature(feature).geometry()))
+        }, ee.FeatureCollection([]))
+    )
+  }
+
+  if (region instanceof ee.FeatureCollection)
+    return tile_feature_collection(region)
+  else if (region instanceof ee.Feature)
+    return tile_geometry(region.geometry())
+  else if (region instanceof ee.Geometry)
+    return tile_geometry(region)
+  else
+    throw Error(
+      'region must be ee.FeatureCollection, ee.Feature, or ee.Geometry. Was ' + region
+    )
+}
+
+print(tiles.limit(2), "Sample tiles");
+
+Map.addLayer(tiles.limit(10), {}, "Sample tiles")
+
+
+
+var tiles2 = tiles.limit(10);  ///REMOVE LATER
+
+
+
+
+
+// Function to get the ID of an image in an image collection
+var getImageID = function(imageCollection, index) {
+  // Get the image at the specified index
+  var image = ee.Image(imageCollection.toList(imageCollection.size()).get(index));
+  
+  // Get the ID of the image
+  var imageID = image.id();
+  
+  // Return the image ID
+  return imageID;
+};
+
+// Usage example:
+var ndviCollection = ee.ImageCollection('MODIS/061/MOD13Q1');
+var imageIndex = 0; // Index of the image you want to retrieve the ID from
+
+//var imageID = getImageID(ndviCollection, imageIndex);
+///print('Image ID:', imageID);
+
+
+
+
+var reduced = ndvi.map(function(image){
+  return image.reduceRegions({
+    collection:tiles2 , 
+    reducer:ee.Reducer.mean(), 
+    scale: 250
+  });
+});
+
+var table = reduced.flatten();
+print(table.limit(1));
+//Function must
+
+var ndviStack = ndvi.toBands();
+
+var tilesNDVI = ndviStack.reduceRegions(tiles2, ee.Reducer.mean());
+
+print(tilesNDVI.limit(2));
+ //1. Subset to the image based on its index number
+ 
+ 
+ //2. Obtain the id of that image
+ 
+ 
+ //3. Rename the image the name of the id
+ 
+ 
+ //4. Perform a spatial reduction on the tiles
+ 
+ 
+
