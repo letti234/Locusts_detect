@@ -203,9 +203,22 @@ var getImageID = function(imageCollection, index) {
 var ndviCollection = ee.ImageCollection('MODIS/061/MOD13Q1');
 var imageIndex = 0; // Index of the image you want to retrieve the ID from
 
-var imageID = getImageID(ndviCollection, imageIndex);
-print('Image ID:', imageID);
+//var imageID = getImageID(ndviCollection, imageIndex);
+///print('Image ID:', imageID);
 
+
+
+
+var reduced = ndvi.map(function(image){
+  return image.reduceRegions({
+    collection:tiles2 , 
+    reducer:ee.Reducer.mean(), 
+    scale: 250
+  });
+});
+
+var table = reduced.flatten();
+print(table.limit(1));
 //Function must
 
  //1. Subset to the image based on its index number
@@ -220,8 +233,3 @@ print('Image ID:', imageID);
  //4. Perform a spatial reduction on the tiles
  
  
- 
- 
- 
- 
-
