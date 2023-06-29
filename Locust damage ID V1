@@ -54,13 +54,13 @@ var buffsUnion = buffered.union().filterBounds(ETH);
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 var buffsUnion = buffsUnion.geometry();
-print(buffsUnion);
+//print(buffsUnion);
 var ETH = ETH.geometry();
 
 
 var mlArea = ETH.difference(buffsUnion);
 
-Map.addLayer(mlArea, {}, "Area for data training")
+//Map.addLayer(mlArea, {}, "Area for data training")
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -69,12 +69,18 @@ Map.addLayer(mlArea, {}, "Area for data training")
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-var modis = ee.ImageCollection('MODIS/061/MOD13Q1')
+var modis = ee.ImageCollection('MODIS/061/MOD13Q1').filterBounds(mlArea);
                   //.map(function(image){return image.clip(mlArea)});
 
 
 var ndvi = modis.select('NDVI');
-print(ndvi,"MODIS NDVI raw clipped");
+//print(ndvi,"MODIS NDVI raw clipped");
+
+function clp(img) {
+  return img.clip(mlArea)
+}
+
+var ndviC = dataset.map(ndvi)
 
 //Nice visual parameters for mapping
 var ndviVis = {
@@ -87,7 +93,9 @@ var ndviVis = {
   ],
 };
 
-Map.addLayer(ndvi, ndviVis, 'NDVI', 0);
+var ndviDemo = ndvi.filter(ee.Filter.date('2014-04-01', '2014-04-08'));
+
+Map.addLayer( ndviDemo, ndviVis, 'NDVI', 0);
 
 
 
