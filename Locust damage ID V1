@@ -99,7 +99,11 @@ Map.addLayer( ndviDemo, ndviVis, 'NDVI', 0);
 
 
 
-//Develop supervisted classification algorithm predicting NDVI in 2014 based on time series of NDVI (2000-2013)
+//Develop supervisted classification algorithm predicting NDVI in 2014 based on time series of NDVI 
+//Training data: use 2014 observations for training
+//Testing data: do not use 2014 observations for training
+
+
 
 
 
