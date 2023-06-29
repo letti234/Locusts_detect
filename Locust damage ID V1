@@ -77,10 +77,10 @@ var ndvi = modis.select('NDVI');
 //print(ndvi,"MODIS NDVI raw clipped");
 
 function clp(img) {
-  return img.clip(mlArea)
+  return img.clip(mlArea);
 }
 
-var ndviC = dataset.map(ndvi)
+var ndviC = ndvi.map(clp);
 
 //Nice visual parameters for mapping
 var ndviVis = {
@@ -93,7 +93,7 @@ var ndviVis = {
   ],
 };
 
-var ndviDemo = ndvi.filter(ee.Filter.date('2014-04-01', '2014-04-08'));
+var ndviDemo = ndviC.filter(ee.Filter.date('2014-04-01', '2014-04-08'));
 
 Map.addLayer( ndviDemo, ndviVis, 'NDVI', 0);
 
