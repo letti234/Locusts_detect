@@ -14,12 +14,14 @@
   //  Determine dates for the corresponding path and how these align with the lower outcome
 
 
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //Call on hysplit vectors (a dataframe) and Ethiopia ADM0 data.
 //Create 10 km buffer around the paths, clip to Ethiopia
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
+
 var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output");
 print(fPaths.limit(5));
 
@@ -44,8 +46,11 @@ var buffsUnion = buffered.union().filterBounds(ETH);
 Map.addLayer(buffsUnion, { color: 'FFFF00', opacity: 0.25 }, 'Buffered Union');
 
 
-//Cut buffer out of Ethiopia shapefile - this is the area in which we will do training and testing
-
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//Remove ROI from Ethiopia shapefile to get area for training and testing
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
