@@ -1,5 +1,25 @@
-//Call on hysplit vectors (a dataframe) and Ethiopia ADM0 data
+//Locusts and agriculture in Ethiopia project
+//Cheikh Fall, Amy Damon, and Colette Salemi
+//Identifying damage areas using machine learning
+//Version 1
+//Last updated: 6-29-23
 
+
+//Objective
+  //Identify ROI where we have evidence of locust presence based on the Hysplit model
+  //Use non-ROI and MODIS NDVI 16-day 2000-2014 to predict NDVI for 2014
+  //Apply algorithm to predict NDVI in the ROI area for 2014
+  //Export 2014 maps: predicted and real
+  //In R, identify the areas where we see a significant reduction in NDVI relative to predictions.
+  //  Determine dates for the corresponding path and how these align with the lower outcome
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//Call on hysplit vectors (a dataframe) and Ethiopia ADM0 data.
+//Create 10 km buffer around the paths, clip to Ethiopia
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////
 var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output");
 print(fPaths.limit(5));
 
@@ -10,7 +30,7 @@ var ETH = ee.FeatureCollection("FAO/GAUL/2015/level0")
 
 Map.addLayer(fPaths.draw({color: 'red', strokeWidth: 1}), {}, 'Forward paths', 0);
 
-//Create 10 km buffer around the paths, clip to Ethiopia
+//
 
 
 var buffered = fPaths.map(function(f) {
@@ -19,13 +39,9 @@ var buffered = fPaths.map(function(f) {
 
 ///Map.addLayer(buffered, "10 km buffers around all paths");
 
-var buffsUnion = buffered.union();
+var buffsUnion = buffered.union().filterBounds(ETH);
 
-Map.addLayer(buffsUnion);
-
-var buffsGeoDissolve =buffered.geometry().dissolve();
-Map.addLayer(buffsGeoDissolve, {}, 'Dissolve using geometry().dissolve()');
-
+Map.addLayer(buffsUnion, { color: 'FFFF00', opacity: 0.25 }, 'Buffered Union');
 
 
 //Cut buffer out of Ethiopia shapefile - this is the area in which we will do training and testing
