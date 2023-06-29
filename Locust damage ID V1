@@ -1,0 +1,39 @@
+//Call on hysplit vectors (a dataframe)
+
+
+
+//Combine dataframe into one polygon object
+
+
+
+
+//Draw 10 km buffer around polygon
+
+
+
+
+//Cut buffer out of Ethiopia shapefile - this is the area in which we will do training and testing
+
+
+
+
+//Develop supervisted classification algorithm predicting NDVI in 2014 based on time series of NDVI (2000-2013)
+
+
+
+
+
+//Test on testing data
+
+
+
+
+//Apply to 2014 data years for buffer area
+
+
+
+
+//Export 2014 predictions and 2014 outcomes in buffer area
+
+
+
