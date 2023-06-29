@@ -2,8 +2,9 @@
 
 var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output")
                 .filterBounds(ETH);
-            
 
+print(fPaths); 
+Map.addLayer(fPaths.draw({color: 'red', strokeWidth: 1}), {}, 'Forward paths', 0);
 //Combine dataframe into one polygon object
 
 
