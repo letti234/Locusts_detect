@@ -104,6 +104,15 @@ Map.addLayer( ndviDemo, ndviVis, 'NDVI', 0);
 //Testing data: do not use 2014 observations for training
 
 
+//Random points across Ethiopia
+
+
+
+//Subset to areas outside of ROI and cut in half: one half is the training data, the other the testing data
+
+
+
+
 
 
 
