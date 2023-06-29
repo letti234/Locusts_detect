@@ -1,10 +1,10 @@
 //Call on hysplit vectors (a dataframe)
 
-var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output")
-                .filterBounds(ETH);
+var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output");
+print(fPaths.limit(5));
 
-print(fPaths); 
 Map.addLayer(fPaths.draw({color: 'red', strokeWidth: 1}), {}, 'Forward paths', 0);
+
 //Combine dataframe into one polygon object
 
 
@@ -12,13 +12,13 @@ Map.addLayer(fPaths.draw({color: 'red', strokeWidth: 1}), {}, 'Forward paths', 0
 
 //Draw 10 km buffer around polygon
 
-var ETH = ee.FeatureCollection("FAO/GAUL/2015/level0")
-.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
-
 
 
 
 //Cut buffer out of Ethiopia shapefile - this is the area in which we will do training and testing
+
+var ETH = ee.FeatureCollection("FAO/GAUL/2015/level0")
+.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
 
 
 
