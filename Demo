@@ -237,7 +237,7 @@ var chart = ui.Chart.image.series({
     pointSize: 3,
     lineWidth: 1,
     vAxis: {
-      title: 'Rainfall (mm)',
+      title: 'NDVI (scale?)',
       ticks: [2000, 3000, 4000, 5000, 6000, 7000, 8000], 
       gridlines: {color: '#f0f0f0'}
     },
