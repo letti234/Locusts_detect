@@ -1,6 +1,8 @@
 //Call on hysplit vectors (a dataframe)
 
-
+var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output")
+                .filterBounds(ETH);
+            
 
 //Combine dataframe into one polygon object
 
@@ -8,6 +10,9 @@
 
 
 //Draw 10 km buffer around polygon
+
+var ETH = ee.FeatureCollection("FAO/GAUL/2015/level0")
+.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
 
 
 
