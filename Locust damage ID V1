@@ -18,32 +18,32 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //Call on hysplit vectors (a dataframe) and Ethiopia ADM0 data.
-//Create 10 km buffer around the paths, clip to Ethiopia
+//Create 20 km buffer around the paths, clip to Ethiopia
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output");
-print(fPaths.limit(5));
+print(fPaths.limit(5), "Locust paths");
 
 var ETH = ee.FeatureCollection("FAO/GAUL/2015/level0")
 .filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
-
+print("Ethiopia ADM0", ETH);
 
 
 Map.addLayer(fPaths.draw({color: 'red', strokeWidth: 1}), {}, 'Forward paths', 0);
 
-//
+
 
 
 var buffered = fPaths.map(function(f) {
-  return f.buffer(10000, 100); 
+  return f.buffer(20000, 100); 
 });
 
 ///Map.addLayer(buffered, "10 km buffers around all paths");
 
 var buffsUnion = buffered.union().filterBounds(ETH);
-print(buffsUnion);
-Map.addLayer(buffsUnion, { color: 'FFFF00', opacity: 0.25 }, 'Buffered Union');
+//print(buffsUnion);
+//Map.addLayer(buffsUnion, { color: 'FFFF00', opacity: 0.25 }, 'Buffered Union');
 
 
 
@@ -52,6 +52,42 @@ Map.addLayer(buffsUnion, { color: 'FFFF00', opacity: 0.25 }, 'Buffered Union');
 //Remove ROI from Ethiopia shapefile to get area for training and testing
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
+
+var buffsUnion = buffsUnion.geometry();
+print(buffsUnion);
+var ETH = ETH.geometry();
+
+
+var mlArea = ETH.difference(buffsUnion);
+
+Map.addLayer(mlArea, {}, "Area for data training")
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//Crop NDVI data to ml area
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+var modis = ee.ImageCollection('MODIS/061/MOD13Q1')
+                  .map(function(image){return image.clip(mlArea)});
+
+
+var ndvi = modis.select('NDVI');
+print(ndvi,"MODIS NDVI raw clipped");
+
+//Nice visual parameters for mapping
+var ndviVis = {
+  min: 0.0,
+  max: 8000.0,
+  palette: [
+    'FFFFFF', 'CE7E45', 'DF923D', 'F1B555', 'FCD163', '99B718', '74A901',
+    '66A000', '529400', '3E8601', '207401', '056201', '004C00', '023B01',
+    '012E01', '011D01', '011301'
+  ],
+};
+
+Map.addLayer(ndvi, ndviVis, 'NDVI', 0);
 
 
 
