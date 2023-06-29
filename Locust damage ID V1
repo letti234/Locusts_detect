@@ -42,8 +42,9 @@ var buffered = fPaths.map(function(f) {
 ///Map.addLayer(buffered, "10 km buffers around all paths");
 
 var buffsUnion = buffered.union().filterBounds(ETH);
-
+print(buffsUnion);
 Map.addLayer(buffsUnion, { color: 'FFFF00', opacity: 0.25 }, 'Buffered Union');
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
