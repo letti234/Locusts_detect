@@ -1,0 +1,122 @@
+
+//From https://medium.com/@moraesd90/detecting-change-with-ccdc-on-google-earth-engine-7125bfc1a6a
+
+var study_area = ee.FeatureCollection("FAO/GAUL/2015/level0")
+.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
+
+var date_start = "2000-03-05";
+var date_end = "2015-12-19";
+
+
+var S2 = ee.ImageCollection('MODIS/061/MOD13Q1').select("NDVI")
+               .map(function(image){return image.clip(study_area)})
+               .filterDate(date_start,date_end);
+
+
+
+var ccdc_params = {
+   collection: S2.select(['NDVI']),
+   breakpointBands: ['NDVI'],
+   minObservations: 6,
+   chiSquareProbability: .99,
+   minNumOfYearsScaler: 1.33,
+   dateFormat: 2,
+   lambda: 100,
+   maxIterations: 25000
+ };
+ 
+ 
+ 
+ var ccdc_result = ee.Algorithms.TemporalSegmentation.Ccdc(ccdc_params);
+ print(ccdc_result);
+ 
+ 
+ 
+var tbreak = ccdc_result.select(['tBreak']);
+var argmax_array = tbreak.arrayArgmax();
+var argmax_scalar = argmax_array.arrayFlatten([['argmax_array']]);
+var last_break = tbreak.arrayGet(argmax_scalar);
+
+print(last_break);
+
+
+
+var year_last_break = ee.Image.constant(1970)
+                    .add(last_break.divide(
+                     ee.Image.constant(365*24*3600*1000)));
+                     
+                     
+// CREATE SYMBOLOGY TO APPLY TO THE IMAGE
+var sld_intervals =
+'<RasterSymbolizer>' +
+  '<ColorMap type="intervals" extended="false">' +
+    '<ColorMapEntry color="#ca0020" quantity="2015" label="2015"/>' +
+    '<ColorMapEntry color="#ec846e" quantity="2014" label="2014"/>' +
+    '<ColorMapEntry color="#fbd6a7" quantity="2013" label="2013"/>' +
+    '<ColorMapEntry color="#d4e2cc" quantity="2012" label="2012"/>' +
+    '<ColorMapEntry color="#76b4d5" quantity="2011" label="2011"/>' +
+    '<ColorMapEntry color="#0571b0" quantity="2010" label="2010"/>' +
+  '</ColorMap>' +
+'</RasterSymbolizer>';
+Map.addLayer(year_last_break.sldStyle(sld_intervals),{}, 'Year of Last Break');
+//Add legend to map
+// set position of panel
+var legend = ui.Panel({
+  style: {
+    position: 'bottom-left',
+    padding: '8px 15px'
+  }
+});
+ 
+// Create legend title
+var legendTitle = ui.Label({
+  value: 'Legend',
+  style: {
+    fontWeight: 'bold',
+    fontSize: '18px',
+    margin: '0 0 4px 0',
+    padding: '0'
+    }
+});
+// Add the title to the panel
+legend.add(legendTitle);
+ 
+// Creates and styles 1 row of the legend.
+var makeRow = function(color, name) {
+ 
+      // Create the label that is actually the colored box.
+      var colorBox = ui.Label({
+        style: {
+          backgroundColor: '#' + color,
+          // Use padding to give the box height and width.
+          padding: '8px',
+          margin: '0 0 4px 0'
+        }
+      });
+ 
+      // Create the label filled with the description text.
+      var description = ui.Label({
+        value: name,
+        style: {margin: '0 0 4px 6px'}
+      });
+ 
+      // return the panel
+      return ui.Panel({
+        widgets: [colorBox, description],
+        layout: ui.Panel.Layout.Flow('horizontal')
+      });
+};
+ 
+//  Palette with the colors
+var palette =['ca0020', 'ec846e', 'fbd6a7', 'd4e2cc', '76b4d5', '0571b0'];
+ 
+// labels of legend items
+var names = ['2016','2017', '2018', '2019', '2020', '2021'];
+ 
+// Add colors and names
+for (var i = 0; i < 6; i++) {
+  legend.add(makeRow(palette[i], names[i]));
+  }  
+ 
+// add legend to map (alternatively you can also print the legend to the console)
+Map.add(legend);
