@@ -45,17 +45,19 @@ var year_last_break = ee.Image.constant(1970)
                     .add(last_break.divide(
                      ee.Image.constant(365*24*3600*1000)));
                      
+     
+     
                      
 // CREATE SYMBOLOGY TO APPLY TO THE IMAGE
 var sld_intervals =
 '<RasterSymbolizer>' +
   '<ColorMap type="intervals" extended="false">' +
-    '<ColorMapEntry color="#ca0020" quantity="2015" label="2015"/>' +
-    '<ColorMapEntry color="#ec846e" quantity="2014" label="2014"/>' +
-    '<ColorMapEntry color="#fbd6a7" quantity="2013" label="2013"/>' +
-    '<ColorMapEntry color="#d4e2cc" quantity="2012" label="2012"/>' +
-    '<ColorMapEntry color="#76b4d5" quantity="2011" label="2011"/>' +
-    '<ColorMapEntry color="#0571b0" quantity="2010" label="2010"/>' +
+    '<ColorMapEntry color="#ca0020" quantity="2014" label="2014"/>' +
+    '<ColorMapEntry color="#ec846e" quantity="2013" label="2013"/>' +
+    '<ColorMapEntry color="#fbd6a7" quantity="2012" label="2012"/>' +
+    '<ColorMapEntry color="#d4e2cc" quantity="2011" label="2011"/>' +
+    '<ColorMapEntry color="#76b4d5" quantity="2010" label="2010"/>' +
+    '<ColorMapEntry color="#0571b0" quantity="2009" label="2009"/>' +
   '</ColorMap>' +
 '</RasterSymbolizer>';
 Map.addLayer(year_last_break.sldStyle(sld_intervals),{}, 'Year of Last Break');
@@ -111,7 +113,7 @@ var makeRow = function(color, name) {
 var palette =['ca0020', 'ec846e', 'fbd6a7', 'd4e2cc', '76b4d5', '0571b0'];
  
 // labels of legend items
-var names = ['2016','2017', '2018', '2019', '2020', '2021'];
+var names = ['2014','2013', '2012', '2011', '2010', '2009'];
  
 // Add colors and names
 for (var i = 0; i < 6; i++) {
@@ -120,3 +122,5 @@ for (var i = 0; i < 6; i++) {
  
 // add legend to map (alternatively you can also print the legend to the console)
 Map.add(legend);
+
+
