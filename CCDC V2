@@ -45,26 +45,3 @@ var ccdc_params = {
  print("CDCC result", ccdc_result);
  
  
-//Flatten array to get year of last break 
-var tbreak = ccdc_result.select(['tBreak']);
-
-var argmax_array = tbreak.arrayArgmax();
-
-print(argmax_array, "Maximum disturbance date");
-
-var argmax_scalar = argmax_array.arrayFlatten([['argmax_array']]);
-var last_break = tbreak.arrayGet(argmax_scalar);
-var year_last_break = ee.Image.constant(1970)
-                    .add(last_break.divide(
-                     ee.Image.constant(365*24*3600*1000)));
-                     
-
-Export.image.toDrive({  
- image: year_last_break,  
- description: 'YrLastBreakNDVI',  
- folder: "Locusts",
- scale: 250,  
- fileFormat: 'GeoTIFF',  
-});
-
-                    
