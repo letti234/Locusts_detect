@@ -44,6 +44,18 @@ var ccdc_params = {
  var ccdc_result = ee.Algorithms.TemporalSegmentation.Ccdc(ccdc_params);
  print("CDCC result", ccdc_result);
  
- //Vectorize
- 
- 
+
+//Time of disturbances only
+var tbreak = ccdc_result.select(['tBreak']);
+
+//Convert Unix timestamp and get year of last disturbance
+
+var year_of_break = ee.Image.constant(1970)
+                    .add(tbreak.divide(
+                     ee.Image.constant(365*24*3600*1000)));
+                     
+print(year_of_break);
+
+
+
+
