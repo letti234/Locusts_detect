@@ -1,0 +1,49 @@
+//Locusts and agriculture in Ethiopia project
+//Cheikh Fall, Amy Damon, and Colette Salemi
+//Identifying damage areas using CCDC
+//Version 1
+//Last updated: 8-16-23
+
+
+//Objective
+  //Use NDVI data to detect disturbances
+  //Identify dates of 2014 disturbances 
+  //Overlay 2014 disturbance dates with HYSPLIT paths
+  //Subset path areas with 2014 disturbances 
+
+//From https://medium.com/@moraesd90/detecting-change-with-ccdc-on-google-earth-engine-7125bfc1a6a
+
+var study_area = ee.FeatureCollection("FAO/GAUL/2015/level0")
+.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
+
+
+//Time interval - use long time horizon to help detect anomalies in 2014
+var date_start = "2000-01-01";
+var date_end = "2014-12-31";
+
+//Filtered image collection of NDVI from MODIS
+var S2 = ee.ImageCollection('MODIS/061/MOD13Q1').select("NDVI")
+               .map(function(image){return image.clip(study_area)})
+               .filterDate(date_start, date_end);
+
+print("NDVI data", S2);
+
+var ccdc_params = {
+   collection: S2.select(['NDVI']),
+   breakpointBands: ['NDVI'],
+   minObservations: 6,
+   chiSquareProbability: .99,
+   minNumOfYearsScaler: 1.33,
+   dateFormat: 2,
+   lambda: 100,
+   maxIterations: 25000
+ };
+ 
+ 
+ //Resulting array 
+ var ccdc_result = ee.Algorithms.TemporalSegmentation.Ccdc(ccdc_params);
+ print("CDCC result", ccdc_result);
+ 
+ //Vectorize
+ 
+ 
