@@ -60,7 +60,8 @@ if (exportResults) {
         pyramidingPolicy: {
             ".default": 'sample'
         },
-        scale: 30
+        scale: 30,
+        maxPixels: 3e9
     });
 }
 
