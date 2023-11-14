@@ -82,13 +82,12 @@ var ccdParams = {
 var ccdResults = ee.Algorithms.TemporalSegmentation.Ccdc(ccdParams);
 print(ccdResults);
 
-Export results
+//Export results
 var exportResults = true;
 if (exportResults) {
     // Create a metadata dictionary with the parameters and arguments used.
     var metadata = ccdParams;
     metadata['breakpointBands'] = metadata['breakpointBands'].toString();
-    metadata['tmaskBands'] = metadata['tmaskBands'].toString();
     metadata['startDate'] = startDate;
     metadata['endDate'] = endDate;
     metadata['bands'] = bands.toString();
@@ -108,46 +107,49 @@ if (exportResults) {
 
 
 
-
 //  -----------------------------------------------------------------------
 //  Check dates on sightings data to pick minimum and maximums for 2014
 //  -----------------------------------------------------------------------
 
-var minStartDate = swarms.aggregate_min('STARTDATE');
-print(minStartDate); //Jan 1st 2014
+// var minStartDate = swarms.aggregate_min('STARTDATE');
+// print(minStartDate); //Jan 1st 2014
 
-var maxStartDate = swarms.aggregate_max('STARTDATE');
-print(maxStartDate); //Dec. 30th 2014
+// var maxStartDate = swarms.aggregate_max('STARTDATE');
+// print(maxStartDate); //Dec. 30th 2014
 
 
 //  -----------------------------------------------------------------------
-//  FIND CHANGE PROBABILITY WITHIN THE DATE RANGE 
+//  Determine when and where breaks occurred in 2014
 //  -----------------------------------------------------------------------
 
-
+//Find change dates and change probability
 var change = ccdResults.select('tBreak');
 var changeProb = ccdResults.select('changeProb');
 
-print(changeProb);
 
 // Set the time range we want to use and get as mask of 
 // places that meet the condition.
 var start = 2013;  
-var end = 2014;    
+var end = 2014; 
+
+//Create a mask of only dates within range and changeProb equal to 1
 var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
 1));
 
 // Map.addLayer(changeProb);
 // print(changeProb);
 
+//Calculate the number of breaks in 2014
 var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0]);
+
+//Map the number of breaks
 Map.addLayer(numBreaks, {
     min: 0,
     max: 1
 }, 'Number of breaks');
 
-print(numBreaks);
 
+//Map other locust information for comparison
 Map.addLayer(swarms, {color: 'FF0000'}, "2014 sightings")
 Map.addLayer(fPaths, {color: '#800080'}, "2014 forward paths")
 Map.addLayer(fPaths, {color: '#800080'}, "2014 backward paths")
