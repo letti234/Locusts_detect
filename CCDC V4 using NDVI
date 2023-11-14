@@ -121,7 +121,7 @@ print(ccdResults);
 
 
 //  -----------------------------------------------------------------------
-//  Determine when and where breaks occurred in 2014
+//  Determine number of breaks in 2014 and the maximum number
 //  -----------------------------------------------------------------------
 
 //Find change dates and change probability
@@ -145,24 +145,6 @@ var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
 var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0]);
 
 print(numBreaks, "Number of breaks");
-
-var numericBand = numBreaks.select('tBreak').toFloat();
-
-print(numericBand);
-
-var stats = numericBand.reduceRegion({
-  reducer: ee.Reducer.minMax(),
-  geometry: studyRegion,
-  scale: 250,
-  maxPixels: 2e8
-});
-
-// Extract the minimum and maximum values
-var minValue = ee.Number(stats.get('tBreak' + '_min'));
-var maxValue = ee.Number(stats.get('tbreak' + '_max'));
-
-print(minValue, "Minimum value");
-
 
 
 
