@@ -4,24 +4,35 @@
 //  Nov 2023
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+// Code developed from book, Cloud-Based Remote Sensing with Google Earth Engine,
+// Part F4: Interpreting Image Series. The code uses the MODIS 250M resolution NDVI
+// global data product 2000-2014 to detect time series disturbances at the grid-cell
+// level in 2014. The code exports raster data for the date and severity of each
+// disturbance (the first, second, third, etc.).
 
+// For visual inspection, the code also calls on forward and backward paths from
+// the HYSPLIT model to examine how they align with disturbances, as well as the
+// FAO sighting data.
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  Open packages and data
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+//Resources from the book chapter
 var utils = require(
     'users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api');
 
 var palettes = require('users/gena/packages:palettes');
 
 
-//Forward paths from sightings data
+//Forward paths from sightings data and HYSPLIT
 var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output");
-print(fPaths.limit(5), "Locust paths");
+// print(fPaths.limit(5), "Locust paths");
 
+//Backward paths from sightings data and HYSPLIT
+var bPaths = ee.FeatureCollection("users/salem043/Locusts/bwd_traj_output");
 
-//Sightings data for 2014 only
+//FAO sightings data for 2014 only
 var swarms = ee.FeatureCollection("users/salem043/Locusts/Swarm_Master");
 //Subset to only 2014 observations
 // Define the Unix timestamp range for 2014
@@ -30,7 +41,7 @@ var startDateMax = ee.Date('2014-12-31').millis();
 var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, startDateMax));
 
 
-// ROI
+// Regin of interest
 var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
 .filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
 
@@ -124,21 +135,22 @@ print(changeProb);
 
 // Set the time range we want to use and get as mask of 
 // places that meet the condition.
-var start = 2014;  
+var start = 2013;  
 var end = 2014;    
 var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
 1));
 
-Map.addLayer(changeProb);
-print(changeProb);
+// Map.addLayer(changeProb);
+// print(changeProb);
 
 var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0]);
 Map.addLayer(numBreaks, {
     min: 0,
-    max: 5
+    max: 1
 }, 'Number of breaks');
 
 print(numBreaks);
 
 Map.addLayer(swarms, {color: 'FF0000'}, "2014 sightings")
 Map.addLayer(fPaths, {color: '#800080'}, "2014 forward paths")
+Map.addLayer(fPaths, {color: '#800080'}, "2014 backward paths")
