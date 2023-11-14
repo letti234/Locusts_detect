@@ -15,7 +15,7 @@ var geometry =
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  CCDC application of Locust Infestations in Ethiopia
-//  MODIS NDVI attempt
+//  MODIS NDVI attempt - 2013 placebo run
 //  Nov 2023
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -47,20 +47,20 @@ var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output");
 //Backward paths from sightings data and HYSPLIT
 var bPaths = ee.FeatureCollection("users/salem043/Locusts/bwd_traj_output");
 
-//FAO sightings data for 2014 only
+//FAO sightings data for 2013 only
 var swarms = ee.FeatureCollection("users/salem043/Locusts/Swarm_Master");
-//Subset to only 2014 observations
-// Define the Unix timestamp range for 2014
-var startDateMin = ee.Date('2014-01-01').millis();
-var startDateMax = ee.Date('2014-12-31').millis();
+//Subset to only 2013 observations
+// Define the Unix timestamp range for 2013
+var startDateMin = ee.Date('2013-01-01').millis();
+var startDateMax = ee.Date('2013-12-31').millis();
 var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, startDateMax));
 
 
-// // Regin of interest
-// var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
-// .filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
+// Regin of interest
+var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
+.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
 
-var studyRegion = geometry
+// var studyRegion = geometry
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  CCDC algorithm with MODIS NDVI
@@ -124,19 +124,9 @@ print(ccdResults, "CCDC image array");
 
 
 
-// //  -----------------------------------------------------------------------
-// //  Check dates on sightings data to pick minimum and maximums for 2014
-// //  -----------------------------------------------------------------------
-
-// // var minStartDate = swarms.aggregate_min('STARTDATE');
-// // print(minStartDate); //Jan 1st 2014
-
-// // var maxStartDate = swarms.aggregate_max('STARTDATE');
-// // print(maxStartDate); //Dec. 30th 2014
-
 
 //  -----------------------------------------------------------------------
-//  Determine number of breaks in 2014
+//  Determine number of breaks in 2013
 //  -----------------------------------------------------------------------
 
 //Find change dates and change probability
@@ -146,8 +136,8 @@ var changeProb = ccdResults.select('changeProb');
 
 // Set the time range we want to use and get as mask of 
 // places that meet the condition.
-var start = 2013;  
-var end = 2014; 
+var start = 2012;  
+var end = 2013; 
 
 //Create a mask of only dates within range and changeProb equal to 1
 var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
