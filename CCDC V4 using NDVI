@@ -1,0 +1,144 @@
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  CCDC application of Locust Infestations in Ethiopia
+//  MODIS NDVI attempt
+//  Nov 2023
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  Open packages and data
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+var utils = require(
+    'users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api');
+
+var palettes = require('users/gena/packages:palettes');
+
+
+//Forward paths from sightings data
+var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output");
+print(fPaths.limit(5), "Locust paths");
+
+
+//Sightings data for 2014 only
+var swarms = ee.FeatureCollection("users/salem043/Locusts/Swarm_Master");
+//Subset to only 2014 observations
+// Define the Unix timestamp range for 2014
+var startDateMin = ee.Date('2014-01-01').millis();
+var startDateMax = ee.Date('2014-12-31').millis();
+var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, startDateMax));
+
+
+// ROI
+var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
+.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
+
+
+
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  CCDC algorithm with MODIS NDVI
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+// Define start, end dates and Landsat bands to use.
+var startDate = '2000-01-01';
+var endDate = '2014-12-31';
+var bands = ['BLUE', 'GREEN', 'RED', 'NIR', 'SWIR1', 'SWIR2'];
+
+
+// Retrieve all clear, Landsat 4, 5, 7 and 8 observations (Collection 2, Tier 1).
+
+//Clipped MODIS NDVI data
+var modisNDVI = ee.ImageCollection('MODIS/061/MOD13Q1')
+                  .map(function(image){return image.clip(studyRegion)})
+                  .select('NDVI');
+
+print(modisNDVI.first());
+
+
+// Set CCD params to use.
+var ccdParams = {
+    breakpointBands: ['NDVI'],
+    minObservations: 6,
+    chiSquareProbability: 0.99,
+    minNumOfYearsScaler: 1.33,
+    dateFormat: 1,
+    lambda: 0.002,
+    maxIterations: 10000,
+    collection: modisNDVI
+};
+
+
+// Run CCD.
+var ccdResults = ee.Algorithms.TemporalSegmentation.Ccdc(ccdParams);
+print(ccdResults);
+
+//Export results
+// var exportResults = false;
+// if (exportResults) {
+//     // Create a metadata dictionary with the parameters and arguments used.
+//     var metadata = ccdParams;
+//     metadata['breakpointBands'] = metadata['breakpointBands'].toString();
+//     metadata['tmaskBands'] = metadata['tmaskBands'].toString();
+//     metadata['startDate'] = startDate;
+//     metadata['endDate'] = endDate;
+//     metadata['bands'] = bands.toString();
+
+//     // Export results, assigning the metadata as image properties.
+//     // 
+//     Export.image.toAsset({
+//         image: ccdResults.set(metadata),
+//         region: studyRegion,
+//         pyramidingPolicy: {
+//             ".default": 'sample'
+//         },
+//         scale: 30,
+//         maxPixels: 3e9
+//     });
+// }
+
+
+
+
+//  -----------------------------------------------------------------------
+//  Check dates on sightings data to pick minimum and maximums for 2014
+//  -----------------------------------------------------------------------
+
+var minStartDate = swarms.aggregate_min('STARTDATE');
+print(minStartDate); //Jan 1st 2014
+
+var maxStartDate = swarms.aggregate_max('STARTDATE');
+print(maxStartDate); //Dec. 30th 2014
+
+
+//  -----------------------------------------------------------------------
+//  FIND CHANGE PROBABILITY WITHIN THE DATE RANGE 
+//  -----------------------------------------------------------------------
+
+
+var change = ccdResults.select('tBreak');
+var changeProb = ccdResults.select('changeProb');
+
+print(changeProb);
+
+// Set the time range we want to use and get as mask of 
+// places that meet the condition.
+var start = 2014;  
+var end = 2014;    
+var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
+1));
+
+Map.addLayer(changeProb);
+print(changeProb);
+
+var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0]);
+Map.addLayer(numBreaks, {
+    min: 0,
+    max: 5
+}, 'Number of breaks');
+
+print(numBreaks);
+
+Map.addLayer(swarms, {color: 'FF0000'}, "2014 sightings")
+Map.addLayer(fPaths, {color: '#800080'}, "2014 forward paths")
