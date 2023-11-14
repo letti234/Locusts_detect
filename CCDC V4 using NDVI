@@ -200,19 +200,6 @@ Map.addLayer(firstChange, timeVisParams, 'first change');
 
 
 //  -----------------------------------------------------------------------
-//  Find the date and severity of the second to last break detected in 2014
-//  -----------------------------------------------------------------------
-
-var lastChange2 = dates
-    .arraySlice(0, -2)
-    .arrayFlatten([
-        ['lastChange2']
-    ])
-    .selfMask();
-Map.addLayer(lastChange2, timeVisParams, '2nd last change');
-  
-    
-//  -----------------------------------------------------------------------
 //  Find the date and severity of the last break detected in 2014
 //  -----------------------------------------------------------------------
 
