@@ -1,0 +1,224 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var geometry = 
+    /* color: #d63000 */
+    /* shown: false */
+    /* displayProperties: [
+      {
+        "type": "rectangle"
+      }
+    ] */
+    ee.Geometry.Polygon(
+        [[[41.892404124611595, 6.680370962151637],
+          [41.892404124611595, 6.210946422627534],
+          [42.304391429299095, 6.210946422627534],
+          [42.304391429299095, 6.680370962151637]]], null, false);
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  CCDC application of Locust Infestations in Ethiopia
+//  MODIS NDVI attempt - 2012 placebo run
+//  Nov 2023
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// Code developed from book, Cloud-Based Remote Sensing with Google Earth Engine,
+// Part F4: Interpreting Image Series. The code uses the MODIS 250M resolution NDVI
+// global data product 2000-2014 to detect time series disturbances at the grid-cell
+// level in 2014. The code exports raster data for the date and severity of each
+// disturbance (the first, second, third, etc.).
+
+// For visual inspection, the code also calls on forward and backward paths from
+// the HYSPLIT model to examine how they align with disturbances, as well as the
+// FAO sighting data.
+
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  Open packages and data
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+//Resources from the book chapter
+var utils = require(
+    'users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api');
+
+var palettes = require('users/gena/packages:palettes');
+
+
+//Forward paths from sightings data and HYSPLIT
+var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output");
+// print(fPaths.limit(5), "Locust paths");
+
+//Backward paths from sightings data and HYSPLIT
+var bPaths = ee.FeatureCollection("users/salem043/Locusts/bwd_traj_output");
+
+//FAO sightings data for 2013 only
+var swarms = ee.FeatureCollection("users/salem043/Locusts/Swarm_Master");
+//Subset to only 2013 observations
+// Define the Unix timestamp range for 2013
+var startDateMin = ee.Date('2013-01-01').millis();
+var startDateMax = ee.Date('2013-12-31').millis();
+var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, startDateMax));
+
+
+// Regin of interest
+var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
+.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
+
+// var studyRegion = geometry
+
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  CCDC algorithm with MODIS NDVI
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+// Define start, end dates and Landsat bands to use.
+var startDate = '2000-01-01';
+var endDate = '2013-12-31';
+var bands = ['BLUE', 'GREEN', 'RED', 'NIR', 'SWIR1', 'SWIR2'];
+
+
+// Retrieve all clear, Landsat 4, 5, 7 and 8 observations (Collection 2, Tier 1).
+
+//Clipped MODIS NDVI data
+var modisNDVI = ee.ImageCollection('MODIS/061/MOD13Q1')
+                  .map(function(image){return image.clip(studyRegion)})
+                  .select('NDVI');
+
+// Set CCD params to use.
+var ccdParams = {
+    breakpointBands: ['NDVI'],
+    minObservations: 6,
+    chiSquareProbability: 0.99,
+    minNumOfYearsScaler: 1.33,
+    dateFormat: 1,
+    lambda: 0.002,
+    maxIterations: 10000,
+    collection: modisNDVI
+};
+
+
+// Run CCD.
+var ccdResults = ee.Algorithms.TemporalSegmentation.Ccdc(ccdParams);
+print(ccdResults, "CCDC image array");
+
+
+
+// //Export results
+// var exportResults = true;
+// if (exportResults) {
+//     // Create a metadata dictionary with the parameters and arguments used.
+//     var metadata = ccdParams;
+//     metadata['breakpointBands'] = metadata['breakpointBands'].toString();
+//     metadata['startDate'] = startDate;
+//     metadata['endDate'] = endDate;
+//     metadata['bands'] = bands.toString();
+
+//     // Export results, assigning the metadata as image properties.
+//     // 
+//     Export.image.toAsset({
+//         image: ccdResults.set(metadata),
+//         region: studyRegion,
+//         pyramidingPolicy: {
+//             ".default": 'sample'
+//         },
+//         scale: 30,
+//         maxPixels: 3e9
+//     });
+// }
+
+
+
+
+//  -----------------------------------------------------------------------
+//  Determine number of breaks in 2013
+//  -----------------------------------------------------------------------
+
+//Find change dates and change probability
+var change = ccdResults.select('tBreak');
+var changeProb = ccdResults.select('changeProb');
+
+
+// Set the time range we want to use and get as mask of 
+// places that meet the condition.
+var start = 2012;  
+var end = 2013; 
+
+//Create a mask of only dates within range and changeProb equal to 1
+var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
+1));
+
+// Map.addLayer(changeProb);
+// print(changeProb);
+
+//Calculate the number of breaks in 2014
+var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0]);
+print(numBreaks, "Number of breaks");
+
+
+//Map the number of breaks
+Map.addLayer(numBreaks, {
+    min: 0,
+    max: 1
+}, 'Number of breaks 2014');
+
+
+//Map other locust information for comparison
+Map.addLayer(swarms, {color: 'FF0000'}, "2014 sightings", 0)
+Map.addLayer(fPaths, {color: '#800080'}, "2014 forward paths", 0)
+Map.addLayer(bPaths, {color: '#800080'}, "2014 backward paths", 0)
+
+
+//  -----------------------------------------------------------------------
+//  Find the date and severity of the first break detected in 2014
+//  -----------------------------------------------------------------------
+
+var dates = change.arrayMask(mask).arrayPad([1]);
+
+
+var firstChange = dates
+    .arraySlice(0, 0, 1)
+    .arrayFlatten([
+        ['firstChange']
+    ])
+    .selfMask();
+
+var timeVisParams = {
+    palette: palettes.colorbrewer.YlOrRd[9],
+    min: start,
+    max: end
+};
+
+// Map.addLayer(firstChange, timeVisParams, 'first change');
+
+
+
+//  -----------------------------------------------------------------------
+//  Find the date and severity of the last break detected in 2014
+//  -----------------------------------------------------------------------
+
+var lastChange = dates
+    .arraySlice(0, -1)
+    .arrayFlatten([
+        ['lastChange']
+    ])
+    .selfMask();
+
+
+// Map.addLayer(lastChange, timeVisParams, 'last change');
+
+
+
+
+Export.image.toDrive({
+  image: firstChange,
+  scale: 250,
+  description: 'firstChangeDate14',
+  fileFormat: 'GEOTIFF',
+  folder: "Locusts",
+  maxPixels: 2e10
+});
+
+Export.image.toDrive({
+  image: lastChange,
+  scale: 250,
+  description: 'lastChangeDate14',
+  fileFormat: 'GEOTIFF',
+  folder: "Locusts",
+   maxPixels: 2e10
+});
