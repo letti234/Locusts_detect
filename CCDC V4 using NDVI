@@ -144,6 +144,34 @@ var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
 //Calculate the number of breaks in 2014
 var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0]);
 
+print(numBreaks, "Number of breaks");
+
+var numBreaks = ee.Image("your/image/path");
+
+// Specify the band for which you want to find all possible values
+var bandName = 'tBreak';
+
+// Use reduceRegion to compute a histogram
+var histogram = numBreaks.reduceRegion({
+  reducer: ee.Reducer.histogram(),
+  geometry: numBreaks.geometry(),
+  scale: 250, // Adjust the scale according to your needs
+}).get(bandName);
+
+
+print(histogram)
+
+// // Extract the unique values from the histogram
+// var uniqueValues = ee.List(histogram.get('bucketMeans'));
+
+// // Print the unique values
+// print('All possible numbers of breaks:', uniqueValues);
+
+
+
+
+
+
 //Map the number of breaks
 Map.addLayer(numBreaks, {
     min: 0,
@@ -162,6 +190,8 @@ Map.addLayer(bPaths, {color: '#800080'}, "2014 backward paths")
 //  -----------------------------------------------------------------------
 
 var dates = change.arrayMask(mask).arrayPad([1]);
+
+
 var firstChange = dates
     .arraySlice(0, 0, 1)
     .arrayFlatten([
