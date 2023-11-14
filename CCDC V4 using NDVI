@@ -1,3 +1,18 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var geometry = 
+    /* color: #d63000 */
+    /* shown: false */
+    /* displayProperties: [
+      {
+        "type": "rectangle"
+      }
+    ] */
+    ee.Geometry.Polygon(
+        [[[41.892404124611595, 6.680370962151637],
+          [41.892404124611595, 6.210946422627534],
+          [42.304391429299095, 6.210946422627534],
+          [42.304391429299095, 6.680370962151637]]], null, false);
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  CCDC application of Locust Infestations in Ethiopia
 //  MODIS NDVI attempt
@@ -41,11 +56,11 @@ var startDateMax = ee.Date('2014-12-31').millis();
 var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, startDateMax));
 
 
-// Regin of interest
-var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
-.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
+// // Regin of interest
+// var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
+// .filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
 
-
+var studyRegion = geometry
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  CCDC algorithm with MODIS NDVI
@@ -80,7 +95,7 @@ var ccdParams = {
 
 // Run CCD.
 var ccdResults = ee.Algorithms.TemporalSegmentation.Ccdc(ccdParams);
-print(ccdResults);
+print(ccdResults, "CCDC image array");
 
 
 
@@ -147,12 +162,11 @@ print(numBreaks, "Number of breaks");
 
 
 
-
 //Map the number of breaks
 Map.addLayer(numBreaks, {
     min: 0,
-    max: 2
-}, 'Number of breaks');
+    max: 5
+}, 'Number of breaks', 0);
 
 
 //Map other locust information for comparison
@@ -181,9 +195,23 @@ var timeVisParams = {
     max: end
 };
 
-Map.addLayer(firstChange, timeVisParams, 'First change');
-print(firstChange, "Image for first change");
+Map.addLayer(firstChange, timeVisParams, 'first change');
 
+
+
+//  -----------------------------------------------------------------------
+//  Find the date and severity of the second to last break detected in 2014
+//  -----------------------------------------------------------------------
+
+var lastChange2 = dates
+    .arraySlice(0, -2)
+    .arrayFlatten([
+        ['lastChange2']
+    ])
+    .selfMask();
+Map.addLayer(lastChange2, timeVisParams, '2nd last change');
+  
+    
 //  -----------------------------------------------------------------------
 //  Find the date and severity of the last break detected in 2014
 //  -----------------------------------------------------------------------
@@ -195,5 +223,5 @@ var lastChange = dates
     ])
     .selfMask();
 
-print(lastChange);
+
 Map.addLayer(lastChange, timeVisParams, 'last change');
