@@ -1,0 +1,54 @@
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  Chapter:      F4.7 Interpreting Time Series with CCDC
+//  Checkpoint:   F47c
+//  Authors:      Paulo Arévalo, Pontus Olofsson
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+//Edited to demonstrate issue 
+
+var palettes = require('users/gena/packages:palettes');
+
+var resultsPath =
+    'projects/gee-book/assets/F4-7/Rondonia_example_small';
+var ccdResults = ee.Image(resultsPath);
+Map.centerObject(ccdResults, 10);
+print(ccdResults);
+
+// Select time of break and change probability array images.
+var change = ccdResults.select('tBreak');
+var changeProb = ccdResults.select('changeProb');
+
+// Set the time range we want to use and get as mask of 
+// places that meet the condition.
+var start = 2000;
+var end = 2021;
+var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
+1));
+Map.addLayer(changeProb, {}, 'change prob');
+
+
+// Obtain the first change in that time period.
+var dates = change.arrayMask(mask).arrayPad([1]);
+var firstChange = dates
+    .arraySlice(0, 0, 1)
+    .arrayFlatten([
+        ['firstChange']
+    ])
+    .selfMask();
+    
+    
+var secondChange = dates
+    .arraySlice(0, 1, 2)
+    .arrayFlatten([
+        ['secondChange']
+    ])
+    .selfMask();
+    
+
+var timeVisParams = {
+    palette: palettes.colorbrewer.YlOrRd[9],
+    min: start,
+    max: end
+};
+Map.addLayer(firstChange, timeVisParams, 'First change');
+Map.addLayer(secondChange, timeVisParams, 'Second change');
