@@ -159,7 +159,21 @@ Map.addLayer(bPaths, {color: '#800080'}, "2014 backward paths")
 //  Find the date and severity of the first break detected in 2014
 //  -----------------------------------------------------------------------
 
+var dates = change.arrayMask(mask).arrayPad([1]);
+var firstChange = dates
+    .arraySlice(0, 0, 1)
+    .arrayFlatten([
+        ['firstChange']
+    ])
+    .selfMask();
 
+var timeVisParams = {
+    palette: palettes.colorbrewer.YlOrRd[9],
+    min: start,
+    max: end
+};
+
+Map.addLayer(firstChange, timeVisParams, 'First change');
 
 
 //  -----------------------------------------------------------------------
