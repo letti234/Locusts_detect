@@ -211,3 +211,24 @@ var lastChange = dates
 
 
 // Map.addLayer(lastChange, timeVisParams, 'last change');
+
+
+
+
+Export.image.toDrive({
+  image: firstChange,
+  scale: 250,
+  description: 'firstChangeDate14',
+  fileFormat: 'GEOTIFF',
+  folder: "Locusts",
+  maxPixels: 2e10
+});
+
+Export.image.toDrive({
+  image: lastChange,
+  scale: 250,
+  description: 'lastChangeDate14',
+  fileFormat: 'GEOTIFF',
+  folder: "Locusts",
+   maxPixels: 2e10
+});
