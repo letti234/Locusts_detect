@@ -47,12 +47,12 @@ var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output");
 //Backward paths from sightings data and HYSPLIT
 var bPaths = ee.FeatureCollection("users/salem043/Locusts/bwd_traj_output");
 
-//FAO sightings data for 2013 only
+//FAO sightings data for 2012 only
 var swarms = ee.FeatureCollection("users/salem043/Locusts/Swarm_Master");
-//Subset to only 2013 observations
-// Define the Unix timestamp range for 2013
-var startDateMin = ee.Date('2013-01-01').millis();
-var startDateMax = ee.Date('2013-12-31').millis();
+//Subset to only 2012 observations
+// Define the Unix timestamp range for 2012
+var startDateMin = ee.Date('2012-01-01').millis();
+var startDateMax = ee.Date('2012-12-31').millis();
 var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, startDateMax));
 
 
@@ -69,9 +69,7 @@ var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
 
 // Define start, end dates and Landsat bands to use.
 var startDate = '2000-01-01';
-var endDate = '2013-12-31';
-var bands = ['BLUE', 'GREEN', 'RED', 'NIR', 'SWIR1', 'SWIR2'];
-
+var endDate = '2012-12-31';
 
 // Retrieve all clear, Landsat 4, 5, 7 and 8 observations (Collection 2, Tier 1).
 
@@ -126,7 +124,7 @@ print(ccdResults, "CCDC image array");
 
 
 //  -----------------------------------------------------------------------
-//  Determine number of breaks in 2013
+//  Determine number of breaks in 2012
 //  -----------------------------------------------------------------------
 
 //Find change dates and change probability
@@ -136,8 +134,8 @@ var changeProb = ccdResults.select('changeProb');
 
 // Set the time range we want to use and get as mask of 
 // places that meet the condition.
-var start = 2012;  
-var end = 2013; 
+var start = 2011;  
+var end = 2012; 
 
 //Create a mask of only dates within range and changeProb equal to 1
 var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
