@@ -146,29 +146,19 @@ var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0]);
 print(numBreaks, "Number of breaks");
 
 
-// Use reduceRegion to find the maximum value in numBreaks
-var maxResult = ee.Number(numBreaks.reduceRegion({
-  reducer: ee.Reducer.max(),
-  geometry: studyRegion,
-  scale: 250,
-  maxPixels: 2e8
-}).get('your_band_name_max'));
-
-// Print the maximum value
-print('Maximum value:', maxResult);
 
 
 //Map the number of breaks
 Map.addLayer(numBreaks, {
     min: 0,
-    max: 3
+    max: 2
 }, 'Number of breaks');
 
 
 //Map other locust information for comparison
-Map.addLayer(swarms, {color: 'FF0000'}, "2014 sightings")
-Map.addLayer(fPaths, {color: '#800080'}, "2014 forward paths")
-Map.addLayer(bPaths, {color: '#800080'}, "2014 backward paths")
+Map.addLayer(swarms, {color: 'FF0000'}, "2014 sightings", 0)
+Map.addLayer(fPaths, {color: '#800080'}, "2014 forward paths", 0)
+Map.addLayer(bPaths, {color: '#800080'}, "2014 backward paths", 0)
 
 
 //  -----------------------------------------------------------------------
