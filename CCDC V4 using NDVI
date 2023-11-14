@@ -174,16 +174,31 @@ var timeVisParams = {
 };
 
 Map.addLayer(firstChange, timeVisParams, 'First change');
-
+print(firstChange, "Image for first change");
 
 //  -----------------------------------------------------------------------
 //  Find the date and severity of the second break detected in 2014
 //  -----------------------------------------------------------------------
 
+var secondChange = dates
+    .arraySlice(0, 1, 2)
+    .arrayFlatten([
+        ['secondChange']
+    ])
+    .selfMask();
 
-
+Map.addLayer(secondChange, timeVisParams, 'Second change');
 
 //  -----------------------------------------------------------------------
 //  Find the date and severity of the third break detected in 2014
 //  -----------------------------------------------------------------------
+
+var thirdChange = dates
+    .arraySlice(0, 2, 3)
+    .arrayFlatten([
+        ['thirdChange']
+    ])
+    .selfMask();
+
+Map.addLayer(thirdChange, timeVisParams, 'Third change');
 
