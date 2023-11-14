@@ -185,44 +185,15 @@ Map.addLayer(firstChange, timeVisParams, 'First change');
 print(firstChange, "Image for first change");
 
 //  -----------------------------------------------------------------------
-//  Find the date and severity of the second break detected in 2014
+//  Find the date and severity of the last break detected in 2014
 //  -----------------------------------------------------------------------
 
-var secondChange = dates
-    .arraySlice(0, 1, 2)
+var lastChange = dates
+    .arraySlice(0, -1)
     .arrayFlatten([
-        ['secondChange']
+        ['lastChange']
     ])
     .selfMask();
 
-print(secondChange);
-Map.addLayer(secondChange, timeVisParams, 'Second change');
-
-//  -----------------------------------------------------------------------
-//  Find the date and severity of the third break detected in 2014
-//  -----------------------------------------------------------------------
-
-var thirdChange = dates
-    .arraySlice(0, 2, 3)
-    .arrayFlatten([
-        ['thirdChange']
-    ])
-    .selfMask();
-
-Map.addLayer(thirdChange, timeVisParams, 'Third change');
-
-
-
-//  -----------------------------------------------------------------------
-//  Find the date and severity of the fourth break detected in 2014
-//  -----------------------------------------------------------------------
-
-var fourthChange = dates
-    .arraySlice(0, 4, 5)
-    .arrayFlatten([
-        ['fourthChange']
-    ])
-    .selfMask();
-
-Map.addLayer(fourthChange, timeVisParams, 'Fourth change');
-
+print(lastChange);
+Map.addLayer(lastChange, timeVisParams, 'last change');
