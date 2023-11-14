@@ -65,9 +65,6 @@ var modisNDVI = ee.ImageCollection('MODIS/061/MOD13Q1')
                   .map(function(image){return image.clip(studyRegion)})
                   .select('NDVI');
 
-print(modisNDVI.first());
-
-
 // Set CCD params to use.
 var ccdParams = {
     breakpointBands: ['NDVI'],
@@ -85,29 +82,29 @@ var ccdParams = {
 var ccdResults = ee.Algorithms.TemporalSegmentation.Ccdc(ccdParams);
 print(ccdResults);
 
-//Export results
-// var exportResults = false;
-// if (exportResults) {
-//     // Create a metadata dictionary with the parameters and arguments used.
-//     var metadata = ccdParams;
-//     metadata['breakpointBands'] = metadata['breakpointBands'].toString();
-//     metadata['tmaskBands'] = metadata['tmaskBands'].toString();
-//     metadata['startDate'] = startDate;
-//     metadata['endDate'] = endDate;
-//     metadata['bands'] = bands.toString();
+Export results
+var exportResults = true;
+if (exportResults) {
+    // Create a metadata dictionary with the parameters and arguments used.
+    var metadata = ccdParams;
+    metadata['breakpointBands'] = metadata['breakpointBands'].toString();
+    metadata['tmaskBands'] = metadata['tmaskBands'].toString();
+    metadata['startDate'] = startDate;
+    metadata['endDate'] = endDate;
+    metadata['bands'] = bands.toString();
 
-//     // Export results, assigning the metadata as image properties.
-//     // 
-//     Export.image.toAsset({
-//         image: ccdResults.set(metadata),
-//         region: studyRegion,
-//         pyramidingPolicy: {
-//             ".default": 'sample'
-//         },
-//         scale: 30,
-//         maxPixels: 3e9
-//     });
-// }
+    // Export results, assigning the metadata as image properties.
+    // 
+    Export.image.toAsset({
+        image: ccdResults.set(metadata),
+        region: studyRegion,
+        pyramidingPolicy: {
+            ".default": 'sample'
+        },
+        scale: 30,
+        maxPixels: 3e9
+    });
+}
 
 
 
