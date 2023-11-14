@@ -149,6 +149,8 @@ print(numBreaks, "Number of breaks");
 
 
 
+
+
 //Map the number of breaks
 Map.addLayer(numBreaks, {
     min: 0,
