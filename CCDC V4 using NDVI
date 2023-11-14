@@ -143,12 +143,19 @@ var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
 
 //Calculate the number of breaks in 2014
 var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0]);
-
 print(numBreaks, "Number of breaks");
 
 
+// Use reduceRegion to find the maximum value in numBreaks
+var maxResult = ee.Number(numBreaks.reduceRegion({
+  reducer: ee.Reducer.max(),
+  geometry: studyRegion,
+  scale: 250,
+  maxPixels: 2e8
+}).get('your_band_name_max'));
 
-
+// Print the maximum value
+print('Maximum value:', maxResult);
 
 
 //Map the number of breaks
