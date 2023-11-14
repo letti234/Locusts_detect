@@ -136,7 +136,7 @@ print(ccdResults, "CCDC image array");
 
 
 //  -----------------------------------------------------------------------
-//  Determine number of breaks in 2014 and the maximum number
+//  Determine number of breaks in 2014
 //  -----------------------------------------------------------------------
 
 //Find change dates and change probability
@@ -161,12 +161,11 @@ var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0]);
 print(numBreaks, "Number of breaks");
 
 
-
 //Map the number of breaks
 Map.addLayer(numBreaks, {
     min: 0,
-    max: 5
-}, 'Number of breaks', 0);
+    max: 1
+}, 'Number of breaks 2014');
 
 
 //Map other locust information for comparison
@@ -195,7 +194,7 @@ var timeVisParams = {
     max: end
 };
 
-Map.addLayer(firstChange, timeVisParams, 'first change');
+// Map.addLayer(firstChange, timeVisParams, 'first change');
 
 
 
@@ -211,4 +210,4 @@ var lastChange = dates
     .selfMask();
 
 
-Map.addLayer(lastChange, timeVisParams, 'last change');
+// Map.addLayer(lastChange, timeVisParams, 'last change');
