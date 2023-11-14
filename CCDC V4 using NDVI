@@ -152,4 +152,24 @@ Map.addLayer(numBreaks, {
 //Map other locust information for comparison
 Map.addLayer(swarms, {color: 'FF0000'}, "2014 sightings")
 Map.addLayer(fPaths, {color: '#800080'}, "2014 forward paths")
-Map.addLayer(fPaths, {color: '#800080'}, "2014 backward paths")
+Map.addLayer(bPaths, {color: '#800080'}, "2014 backward paths")
+
+
+//  -----------------------------------------------------------------------
+//  Find the date and severity of the first break detected in 2014
+//  -----------------------------------------------------------------------
+
+
+
+
+//  -----------------------------------------------------------------------
+//  Find the date and severity of the second break detected in 2014
+//  -----------------------------------------------------------------------
+
+
+
+
+//  -----------------------------------------------------------------------
+//  Find the date and severity of the third break detected in 2014
+//  -----------------------------------------------------------------------
+
