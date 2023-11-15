@@ -60,9 +60,9 @@ var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-// Define start, end dates and Landsat bands to use.
+// Define start and end dates
 var startDate = '2000-01-01';
-var endDate = '2014-12-31';
+var endDate = '2020-12-31';
 var bands = ['BLUE', 'GREEN', 'RED', 'NIR', 'SWIR1', 'SWIR2'];
 
 
