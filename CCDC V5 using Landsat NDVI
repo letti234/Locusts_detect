@@ -1,17 +1,16 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
 var geometry = 
     /* color: #d63000 */
-    /* shown: false */
     /* displayProperties: [
       {
         "type": "rectangle"
       }
     ] */
     ee.Geometry.Polygon(
-        [[[41.892404124611595, 6.680370962151637],
-          [41.892404124611595, 6.210946422627534],
-          [42.304391429299095, 6.210946422627534],
-          [42.304391429299095, 6.680370962151637]]], null, false);
+        [[[41.38080875249576, 8.987221321784228],
+          [41.38080875249576, 7.410537760899474],
+          [43.16059390874576, 7.410537760899474],
+          [43.16059390874576, 8.987221321784228]]], null, false);
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  CCDC application of Locust Infestations in Ethiopia
@@ -60,11 +59,17 @@ var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, st
 // var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
 // .filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
 
-var studyRegion = geometry
+var studyRegion = geometry;
 
+Map.centerObject(studyRegion, 5)
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  CCDC algorithm with MODIS NDVI
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// Define start, end dates and Landsat bands to use.
+var startDate = '2000-01-01';
+var endDate = '2020-01-01';
+var bands = ['NDVI'];
 
 
 // Retrieve all clear, Landsat 4, 5, 7 and 8 observations (Collection 2, Tier 1).
@@ -73,28 +78,27 @@ var filteredLandsat = utils.Inputs.getLandsat({
     })
     .filterBounds(studyRegion)
     .filterDate(startDate, endDate)
-    .select(bands);
+    .select(bands)
+    .map(function(image){return image.clip(studyRegion)});
 
 print(filteredLandsat.first());
 
 
 
+// Set CCD params to use.
+var ccdParams = {
+    breakpointBands: ['NDVI'],
+    minObservations: 6,
+    chiSquareProbability: 0.99,
+    minNumOfYearsScaler: 1.33,
+    dateFormat: 1,
+    lambda: 0.002,
+    maxIterations: 10000,
+    collection: filteredLandsat
+};
 
-// // Set CCD params to use.
-// var ccdParams = {
-//     breakpointBands: ['GREEN', 'RED', 'NIR', 'SWIR1', 'SWIR2'],
-//     tmaskBands: ['GREEN', 'SWIR1'],
-//     minObservations: 6,
-//     chiSquareProbability: 0.99,
-//     minNumOfYearsScaler: 1.33,
-//     dateFormat: 1,
-//     lambda: 0.002,
-//     maxIterations: 10000,
-//     collection: filteredLandsat
-// };
-
-// var ccdResults = ee.Algorithms.TemporalSegmentation.Ccdc(ccdParams);
-// print(ccdResults);
+var ccdResults = ee.Algorithms.TemporalSegmentation.Ccdc(ccdParams);
+print(ccdResults);
 
 
 // // //Export results
@@ -137,39 +141,41 @@ print(filteredLandsat.first());
 // //  Determine number of breaks in 2014
 // //  -----------------------------------------------------------------------
 
-// //Find change dates and change probability
-// var change = ccdResults.select('tBreak');
-// var changeProb = ccdResults.select('changeProb');
+//Find change dates and change probability
+var change = ccdResults.select('tBreak');
+var changeProb = ccdResults.select('changeProb');
 
 
-// // Set the time range we want to use and get as mask of 
-// // places that meet the condition.
-// var start = 2013;  
-// var end = 2014; 
+// Set the time range we want to use and get as mask of 
+// places that meet the condition.
+var start = 2013;  
+var end = 2014; 
 
-// //Create a mask of only dates within range and changeProb equal to 1
-// var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
-// 1));
+//Create a mask of only dates within range and changeProb equal to 1
+var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
+1));
 
-// // Map.addLayer(changeProb);
-// // print(changeProb);
+// Map.addLayer(changeProb);
+// print(changeProb);
 
-// //Calculate the number of breaks in 2014
-// var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0]);
-// print(numBreaks, "Number of breaks");
+//Calculate the number of breaks in 2014
+var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0])
+.clip(studyRegion);
 
-
-// //Map the number of breaks
-// Map.addLayer(numBreaks, {
-//     min: 0,
-//     max: 1
-// }, 'Number of breaks 2014');
+print(numBreaks, "Number of breaks");
 
 
-// //Map other locust information for comparison
-// Map.addLayer(swarms, {color: 'FF0000'}, "2014 sightings", 0)
-// Map.addLayer(fPaths, {color: '#800080'}, "2014 forward paths", 0)
-// Map.addLayer(bPaths, {color: '#800080'}, "2014 backward paths", 0)
+//Map the number of breaks
+Map.addLayer(numBreaks, {
+    min: 0,
+    max: 1
+}, 'Number of breaks 2014');
+
+
+//Map other locust information for comparison
+Map.addLayer(swarms, {color: 'FF0000'}, "2014 sightings", 0)
+Map.addLayer(fPaths, {color: '#800080'}, "2014 forward paths", 0)
+Map.addLayer(bPaths, {color: '#800080'}, "2014 backward paths", 0)
 
 
 // //  -----------------------------------------------------------------------
