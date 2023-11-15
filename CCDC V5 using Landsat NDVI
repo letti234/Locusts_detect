@@ -196,7 +196,7 @@ var timeVisParams = {
     max: end
 };
 
-// Map.addLayer(firstChange, timeVisParams, 'first change');
+Map.addLayer(firstChange, timeVisParams, 'first change');
 
 
 
