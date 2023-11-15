@@ -1,16 +1,17 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
 var geometry = 
     /* color: #d63000 */
+    /* shown: false */
     /* displayProperties: [
       {
         "type": "rectangle"
       }
     ] */
     ee.Geometry.Polygon(
-        [[[41.38080875249576, 8.987221321784228],
-          [41.38080875249576, 7.410537760899474],
+        [[[42.47944156499576, 7.8569839962852415],
+          [42.47944156499576, 7.410537760899474],
           [43.16059390874576, 7.410537760899474],
-          [43.16059390874576, 8.987221321784228]]], null, false);
+          [43.16059390874576, 7.8569839962852415]]], null, false);
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  CCDC application of Locust Infestations in Ethiopia
@@ -39,17 +40,12 @@ var utils = require(
 var palettes = require('users/gena/packages:palettes');
 
 
-//Forward paths from sightings data and HYSPLIT
+//Forward and backward paths from HYSPLIT
 var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output");
-// print(fPaths.limit(5), "Locust paths");
-
-//Backward paths from sightings data and HYSPLIT
 var bPaths = ee.FeatureCollection("users/salem043/Locusts/bwd_traj_output");
 
 //FAO sightings data for 2014 only
 var swarms = ee.FeatureCollection("users/salem043/Locusts/Swarm_Master");
-//Subset to only 2014 observations
-// Define the Unix timestamp range for 2014
 var startDateMin = ee.Date('2014-01-01').millis();
 var startDateMax = ee.Date('2014-12-31').millis();
 var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, startDateMax));
@@ -68,8 +64,8 @@ Map.centerObject(studyRegion, 5)
 
 // Define start, end dates and Landsat bands to use.
 var startDate = '2000-01-01';
-var endDate = '2020-01-01';
-var bands = ['NDVI'];
+var endDate = '2014-01-01';
+var bands = ['NDVI', 'SWIR1', 'GREEN'];
 
 
 // Retrieve all clear, Landsat 4, 5, 7 and 8 observations (Collection 2, Tier 1).
@@ -87,7 +83,8 @@ print(filteredLandsat.first());
 
 // Set CCD params to use.
 var ccdParams = {
-    breakpointBands: ['NDVI'],
+    breakpointBands: ['NDVI', 'SWIR1', 'GREEN'],
+    tmaskBands: ['SWIR1', 'GREEN'],
     minObservations: 6,
     chiSquareProbability: 0.99,
     minNumOfYearsScaler: 1.33,
@@ -98,7 +95,7 @@ var ccdParams = {
 };
 
 var ccdResults = ee.Algorithms.TemporalSegmentation.Ccdc(ccdParams);
-print(ccdResults);
+print(ccdResults, "Results of CCDC estimation");
 
 
 // // //Export results
@@ -182,23 +179,23 @@ Map.addLayer(bPaths, {color: '#800080'}, "2014 backward paths", 0)
 // //  Find the date and severity of the first break detected in 2014
 // //  -----------------------------------------------------------------------
 
-// var dates = change.arrayMask(mask).arrayPad([1]);
+var dates = change.arrayMask(mask).arrayPad([1]);
 
 
-// var firstChange = dates
-//     .arraySlice(0, 0, 1)
-//     .arrayFlatten([
-//         ['firstChange']
-//     ])
-//     .selfMask();
+var firstChange = dates
+    .arraySlice(0, 0, 1)
+    .arrayFlatten([
+        ['firstChange']
+    ])
+    .selfMask();
 
-// var timeVisParams = {
-//     palette: palettes.colorbrewer.YlOrRd[9],
-//     min: start,
-//     max: end
-// };
+var timeVisParams = {
+    palette: palettes.colorbrewer.YlOrRd[9],
+    min: start,
+    max: end
+};
 
-// // Map.addLayer(firstChange, timeVisParams, 'first change');
+// Map.addLayer(firstChange, timeVisParams, 'first change');
 
 
 
