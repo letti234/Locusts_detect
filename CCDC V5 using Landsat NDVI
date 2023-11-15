@@ -8,10 +8,10 @@ var geometry =
       }
     ] */
     ee.Geometry.Polygon(
-        [[[42.47944156499576, 7.8569839962852415],
-          [42.47944156499576, 7.410537760899474],
-          [43.16059390874576, 7.410537760899474],
-          [43.16059390874576, 7.8569839962852415]]], null, false);
+        [[[42.56528418215152, 10.219333171991519],
+          [42.56528418215152, 9.948918230052866],
+          [42.90586035402652, 9.948918230052866],
+          [42.90586035402652, 10.219333171991519]]], null, false);
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  CCDC application of Locust Infestations in Ethiopia
@@ -51,13 +51,13 @@ var startDateMax = ee.Date('2014-12-31').millis();
 var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, startDateMax));
 
 
-// // Regin of interest
-// var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
-// .filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
+// Regin of interest
+var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
+.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
 
-var studyRegion = geometry;
+// var studyRegion = geometry;
 
-Map.centerObject(studyRegion, 8);
+Map.centerObject(studyRegion, 6);
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  CCDC algorithm with MODIS NDVI
@@ -141,6 +141,7 @@ print(ccdResults, "Results of CCDC estimation");
 
 //Find change dates and change probability
 var change = ccdResults.select('tBreak');
+print(change, "All temporal breaks");
 var changeProb = ccdResults.select('changeProb');
 
 
@@ -162,13 +163,7 @@ var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0])
 
 print(numBreaks, "Number of breaks");
 
-
-//Map the number of breaks
-Map.addLayer(numBreaks, {
-    min: 0,
-    max: 1
-}, 'Number of breaks 2014');
-
+Map.addLayer(numBreaks, {min:0, max:2}, 'Number of breaks 2014');
 
 //Map other locust information for comparison
 Map.addLayer(swarms, {color: 'FF0000'}, "2014 sightings", 0)
@@ -180,15 +175,27 @@ Map.addLayer(bPaths, {color: '#800080'}, "2014 backward paths", 0)
 // //  Find the date and severity of the first break detected in 2014
 // //  -----------------------------------------------------------------------
 
+//Array Pad removes all of the entries that are 0 throughout
 var dates = change.arrayMask(mask).arrayPad([1]);
 
+print(dates);
 
+//Use dates object to get layer of first date of disturbance
 var firstChange = dates
     .arraySlice(0, 0, 1)
     .arrayFlatten([
         ['firstChange']
     ])
     .selfMask();
+    
+
+//Mask out pixels in dates with no second date
+var secondChange = dates.arraySlice(0, 1, 2);
+
+Map.addLayer(secondChange);
+
+
+
 
 var timeVisParams = {
     palette: palettes.colorbrewer.YlOrRd[9],
@@ -217,20 +224,20 @@ Map.addLayer(firstChange, timeVisParams, 'first change');
 
 
 
-// Export.image.toDrive({
-//   image: firstChange,
-//   scale: 250,
-//   description: 'firstChangeDate14',
-//   fileFormat: 'GEOTIFF',
-//   folder: "Locusts",
-//   maxPixels: 2e10
-// });
+Export.image.toDrive({
+  image: firstChange,
+  scale: 250,
+  description: 'firstChangeDate14',
+  fileFormat: 'GEOTIFF',
+  folder: "Locusts",
+  maxPixels: 2e10
+});
 
-// Export.image.toDrive({
-//   image: lastChange,
-//   scale: 250,
-//   description: 'lastChangeDate14',
-//   fileFormat: 'GEOTIFF',
-//   folder: "Locusts",
-//   maxPixels: 2e10
-// });
+Export.image.toDrive({
+  image: dates,
+  scale: 250,
+  description: 'dates14',
+  fileFormat: 'GEOTIFF',
+  folder: "Locusts",
+  maxPixels: 2e10
+});
