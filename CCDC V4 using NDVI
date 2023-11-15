@@ -34,23 +34,16 @@ var geometry =
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //Resources from the book chapter
-var utils = require(
-    'users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api');
-
+var utils = require('users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api');
 var palettes = require('users/gena/packages:palettes');
 
 
-//Forward paths from sightings data and HYSPLIT
+//Forward and backward paths from HYSPLIT model
 var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output");
-// print(fPaths.limit(5), "Locust paths");
-
-//Backward paths from sightings data and HYSPLIT
 var bPaths = ee.FeatureCollection("users/salem043/Locusts/bwd_traj_output");
 
 //FAO sightings data for 2014 only
 var swarms = ee.FeatureCollection("users/salem043/Locusts/Swarm_Master");
-//Subset to only 2014 observations
-// Define the Unix timestamp range for 2014
 var startDateMin = ee.Date('2014-01-01').millis();
 var startDateMax = ee.Date('2014-12-31').millis();
 var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, startDateMax));
