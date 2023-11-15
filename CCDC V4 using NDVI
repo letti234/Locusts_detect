@@ -63,10 +63,6 @@ var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
 // Define start and end dates
 var startDate = '2000-01-01';
 var endDate = '2020-12-31';
-var bands = ['BLUE', 'GREEN', 'RED', 'NIR', 'SWIR1', 'SWIR2'];
-
-
-// Retrieve all clear, Landsat 4, 5, 7 and 8 observations (Collection 2, Tier 1).
 
 //Clipped MODIS NDVI data
 var modisNDVI = ee.ImageCollection('MODIS/061/MOD13Q1').filterBounds(geometry)
