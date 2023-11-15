@@ -99,28 +99,28 @@ var ccdResults = ee.Algorithms.TemporalSegmentation.Ccdc(ccdParams);
 print(ccdResults, "Results of CCDC estimation");
 
 
-// // //Export results
-// // var exportResults = true;
-// // if (exportResults) {
-// //     // Create a metadata dictionary with the parameters and arguments used.
-// //     var metadata = ccdParams;
-// //     metadata['breakpointBands'] = metadata['breakpointBands'].toString();
-// //     metadata['startDate'] = startDate;
-// //     metadata['endDate'] = endDate;
-// //     metadata['bands'] = bands.toString();
+//Export results
+var exportResults = true;
+if (exportResults) {
+    // Create a metadata dictionary with the parameters and arguments used.
+    var metadata = ccdParams;
+    metadata['breakpointBands'] = metadata['breakpointBands'].toString();
+    metadata['startDate'] = startDate;
+    metadata['endDate'] = endDate;
+    metadata['bands'] = bands.toString();
 
-// //     // Export results, assigning the metadata as image properties.
-// //     // 
-// //     Export.image.toAsset({
-// //         image: ccdResults.set(metadata),
-// //         region: studyRegion,
-// //         pyramidingPolicy: {
-// //             ".default": 'sample'
-// //         },
-// //         scale: 30,
-// //         maxPixels: 3e9
-// //     });
-// // }
+    // Export results, assigning the metadata as image properties.
+    // 
+    Export.image.toAsset({
+        image: ccdResults.set(metadata),
+        region: studyRegion,
+        pyramidingPolicy: {
+            ".default": 'sample'
+        },
+        scale: 30,
+        maxPixels: 2e12
+    });
+}
 
 
 
@@ -226,18 +226,12 @@ Map.addLayer(firstChange, timeVisParams, 'first change');
 
 Export.image.toDrive({
   image: firstChange,
-  scale: 250,
+  scale: 30,
   description: 'firstChangeDate14',
   fileFormat: 'GEOTIFF',
   folder: "Locusts",
-  maxPixels: 2e10
+  maxPixels: 2e12,
+  region: studyRegion
 });
 
-Export.image.toDrive({
-  image: dates,
-  scale: 250,
-  description: 'dates14',
-  fileFormat: 'GEOTIFF',
-  folder: "Locusts",
-  maxPixels: 2e10
-});
+
