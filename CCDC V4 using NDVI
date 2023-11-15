@@ -8,10 +8,10 @@ var geometry =
       }
     ] */
     ee.Geometry.Polygon(
-        [[[41.892404124611595, 6.680370962151637],
-          [41.892404124611595, 6.210946422627534],
-          [42.304391429299095, 6.210946422627534],
-          [42.304391429299095, 6.680370962151637]]], null, false);
+        [[[32.12184509029022, 15.925749825650442],
+          [32.12184509029022, 1.7205512120377189],
+          [48.99684509029022, 1.7205512120377189],
+          [48.99684509029022, 15.925749825650442]]], null, false);
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  CCDC application of Locust Infestations in Ethiopia
@@ -56,11 +56,11 @@ var startDateMax = ee.Date('2014-12-31').millis();
 var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, startDateMax));
 
 
-// // Regin of interest
-// var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
-// .filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
+// Regin of interest
+var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
+.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
 
-var studyRegion = geometry
+// var studyRegion = geometry
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  CCDC algorithm with MODIS NDVI
@@ -76,7 +76,7 @@ var bands = ['BLUE', 'GREEN', 'RED', 'NIR', 'SWIR1', 'SWIR2'];
 // Retrieve all clear, Landsat 4, 5, 7 and 8 observations (Collection 2, Tier 1).
 
 //Clipped MODIS NDVI data
-var modisNDVI = ee.ImageCollection('MODIS/061/MOD13Q1')
+var modisNDVI = ee.ImageCollection('MODIS/061/MOD13Q1').filterBounds(geometry)
                   .map(function(image){return image.clip(studyRegion)})
                   .select('NDVI');
 
@@ -160,7 +160,7 @@ var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
 var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0]);
 print(numBreaks, "Number of breaks");
 
-
+var numBreaks= numBreaks.clip(studyRegion);
 //Map the number of breaks
 Map.addLayer(numBreaks, {
     min: 0,
@@ -196,7 +196,13 @@ var timeVisParams = {
 
 // Map.addLayer(firstChange, timeVisParams, 'first change');
 
+var firstChangeClip = firstChange.clip(geometry);
+                  
+print(firstChange, "First break date");
 
+//Get extent
+var boundingBox = firstChange.geometry().bounds();
+print('Bounding Box (Extent):', boundingBox.getInfo());
 
 //  -----------------------------------------------------------------------
 //  Find the date and severity of the last break detected in 2014
@@ -209,9 +215,26 @@ var lastChange = dates
     ])
     .selfMask();
 
+var lastChange = lastChange.clip(studyRegion);
 
-// Map.addLayer(lastChange, timeVisParams, 'last change');
+Map.addLayer(lastChange, timeVisParams, 'last change');
 
+
+
+//  -----------------------------------------------------------------------
+//  Find the date and severity of the last break detected in 2014
+//  -----------------------------------------------------------------------
+
+var secLastChange = dates
+    .arraySlice(0, -1)
+    .arrayFlatten([
+        ['secLastChange']
+    ])
+    .selfMask();
+
+var secLastChange = secLastChange.clip(studyRegion);
+
+Map.addLayer(secLastChange, timeVisParams, 'second to last change');
 
 
 
@@ -221,7 +244,8 @@ Export.image.toDrive({
   description: 'firstChangeDate14',
   fileFormat: 'GEOTIFF',
   folder: "Locusts",
-  maxPixels: 2e10
+  maxPixels: 2e8,
+  region: geometry
 });
 
 Export.image.toDrive({
@@ -230,5 +254,6 @@ Export.image.toDrive({
   description: 'lastChangeDate14',
   fileFormat: 'GEOTIFF',
   folder: "Locusts",
-   maxPixels: 2e10
+   maxPixels: 2e8,
+   region: geometry
 });
