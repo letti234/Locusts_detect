@@ -57,7 +57,8 @@ var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, st
 
 var studyRegion = geometry;
 
-Map.centerObject(studyRegion, 8)
+Map.centerObject(studyRegion, 8);
+
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  CCDC algorithm with MODIS NDVI
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
