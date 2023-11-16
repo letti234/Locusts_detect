@@ -58,7 +58,7 @@ var startDateMax = ee.Date('2014-12-31').millis();
 var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, startDateMax));
 
 
-// Regin of interest
+// // Regin of interest
 // var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
 // .filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
 
@@ -209,6 +209,7 @@ Map.addLayer(firstChange, timeVisParams, 'first change');
 //  Find the date and severity of the first break detected in 2014
 //  -----------------------------------------------------------------------
 
+
 // Get the "tBreak" band
 var tBreak = dates.select("tBreak");
 
@@ -218,8 +219,8 @@ var arrayLength = tBreak.toArray().arrayLength(0);
 // Create a mask where array length is greater than or equal to 2
 var mask = arrayLength.gte(2);
 
-// Use arrayFlatten to apply the mask to the "tBreak" band
-var filteredDates = tBreak.arrayFlatten([['tBreak']]).arrayMask(mask);
+// Use the mask to filter the "tBreak" band
+var filteredDates = tBreak.arrayMask(mask);
 
 // Print the resulting image with filtered "tBreak" band
 print(filteredDates);
