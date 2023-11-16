@@ -58,11 +58,11 @@ var startDateMax = ee.Date('2014-12-31').millis();
 var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, startDateMax));
 
 
-// // Regin of interest
-// var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
-// .filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
+// Regin of interest
+var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
+.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
 
-var studyRegion = geometry;
+// var studyRegion = geometry;
 
 Map.centerObject(studyRegion, 6);
 
@@ -128,128 +128,4 @@ if (exportResults) {
         maxPixels: 2e12
     });
 }
-
-
-
-// // //  -----------------------------------------------------------------------
-// // //  Check dates on sightings data to pick minimum and maximums for 2014
-// // //  -----------------------------------------------------------------------
-
-// // // var minStartDate = swarms.aggregate_min('STARTDATE');
-// // // print(minStartDate); //Jan 1st 2014
-
-// // // var maxStartDate = swarms.aggregate_max('STARTDATE');
-// // // print(maxStartDate); //Dec. 30th 2014
-
-
-// //  -----------------------------------------------------------------------
-// //  Determine number of breaks in 2014
-// //  -----------------------------------------------------------------------
-
-//Find change dates and change probability
-var change = ccdResults.select('tBreak');
-print(change, "All temporal breaks");
-var changeProb = ccdResults.select('changeProb');
-
-
-// Set the time range we want to use and get as mask of 
-// places that meet the condition.
-var start = 2013;  
-var end = 2014; 
-
-//Create a mask of only dates within range and changeProb equal to 1
-var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
-1));
-
-// Map.addLayer(changeProb);
-// print(changeProb);
-
-//Calculate the number of breaks in 2014
-var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0])
-.clip(studyRegion);
-
-print(numBreaks, "Number of breaks");
-
-Map.addLayer(numBreaks, {min:0, max:2}, 'Number of breaks 2014');
-
-//Map other locust information for comparison
-Map.addLayer(swarms, {color: 'FF0000'}, "2014 sightings", 0)
-Map.addLayer(fPaths, {color: '#800080'}, "2014 forward paths", 0)
-Map.addLayer(bPaths, {color: '#800080'}, "2014 backward paths", 0)
-
-
-//  -----------------------------------------------------------------------
-//  Find the date and severity of the first break detected in 2014
-//  -----------------------------------------------------------------------
-
-//Array Pad removes all of the entries that are 0 throughout
-var dates = change.arrayMask(mask).arrayPad([1]);
-
-print(dates);
-
-//Use dates object to get layer of first date of disturbance
-var firstChange = dates
-    .arraySlice(0, 0, 1)
-    .arrayFlatten([
-        ['firstChange']
-    ])
-    .selfMask();
- 
- var timeVisParams = {
-    palette: palettes.colorbrewer.YlOrRd[9],
-    min: start,
-    max: end
-};
-
-Map.addLayer(firstChange, timeVisParams, 'first change');
-
-   
-
-//  -----------------------------------------------------------------------
-//  Find the date and severity of the first break detected in 2014
-//  -----------------------------------------------------------------------
-
-
-// Get the "tBreak" band
-var tBreak = dates.select("tBreak");
-
-// Get the array length
-var arrayLength = tBreak.toArray().arrayLength(0);
-
-// Create a mask where array length is greater than or equal to 2
-var mask = arrayLength.gte(2);
-
-// Use the mask to filter the "tBreak" band
-var filteredDates = tBreak.arrayMask(mask);
-
-// Print the resulting image with filtered "tBreak" band
-print(filteredDates);
-
-// //  -----------------------------------------------------------------------
-// //  Find the date and severity of the last break detected in 2014
-// //  -----------------------------------------------------------------------
-
-// var lastChange = dates
-//     .arraySlice(0, -1)
-//     .arrayFlatten([
-//         ['lastChange']
-//     ])
-//     .selfMask();
-
-
-// // Map.addLayer(lastChange, timeVisParams, 'last change');
-
-
-
-
-Export.image.toDrive({
-  image: firstChange,
-  scale: 30,
-  description: 'firstChangeDate14',
-  fileFormat: 'GEOTIFF',
-  folder: "Locusts",
-  maxPixels: 2e12,
-  region: studyRegion
-});
-
 
