@@ -52,10 +52,10 @@ var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, st
 
 
 // Regin of interest
-var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
-.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
+// var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
+// .filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
 
-// var studyRegion = geometry;
+var studyRegion = geometry;
 
 Map.centerObject(studyRegion, 6);
 
@@ -171,9 +171,9 @@ Map.addLayer(fPaths, {color: '#800080'}, "2014 forward paths", 0)
 Map.addLayer(bPaths, {color: '#800080'}, "2014 backward paths", 0)
 
 
-// //  -----------------------------------------------------------------------
-// //  Find the date and severity of the first break detected in 2014
-// //  -----------------------------------------------------------------------
+//  -----------------------------------------------------------------------
+//  Find the date and severity of the first break detected in 2014
+//  -----------------------------------------------------------------------
 
 //Array Pad removes all of the entries that are 0 throughout
 var dates = change.arrayMask(mask).arrayPad([1]);
@@ -187,17 +187,8 @@ var firstChange = dates
         ['firstChange']
     ])
     .selfMask();
-    
-
-//Mask out pixels in dates with no second date
-var secondChange = dates.arraySlice(0, 1, 2);
-
-Map.addLayer(secondChange);
-
-
-
-
-var timeVisParams = {
+ 
+ var timeVisParams = {
     palette: palettes.colorbrewer.YlOrRd[9],
     min: start,
     max: end
@@ -205,6 +196,11 @@ var timeVisParams = {
 
 Map.addLayer(firstChange, timeVisParams, 'first change');
 
+   
+
+//  -----------------------------------------------------------------------
+//  Find the date and severity of the first break detected in 2014
+//  -----------------------------------------------------------------------
 
 
 // //  -----------------------------------------------------------------------
