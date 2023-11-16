@@ -5,13 +5,20 @@ var geometry =
     /* displayProperties: [
       {
         "type": "rectangle"
+      },
+      {
+        "type": "rectangle"
       }
     ] */
-    ee.Geometry.Polygon(
-        [[[42.56528418215152, 10.219333171991519],
-          [42.56528418215152, 9.948918230052866],
-          [42.90586035402652, 9.948918230052866],
-          [42.90586035402652, 10.219333171991519]]], null, false);
+    ee.Geometry.MultiPolygon(
+        [[[[42.56528418215152, 10.219333171991519],
+           [42.56528418215152, 9.948918230052866],
+           [42.90586035402652, 9.948918230052866],
+           [42.90586035402652, 10.219333171991519]]],
+         [[[42.65513068819377, 9.417067230726424],
+           [42.65513068819377, 9.417067230726424],
+           [42.65513068819377, 9.417067230726424],
+           [42.65513068819377, 9.417067230726424]]]], null, false);
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  CCDC application of Locust Infestations in Ethiopia
@@ -202,6 +209,20 @@ Map.addLayer(firstChange, timeVisParams, 'first change');
 //  Find the date and severity of the first break detected in 2014
 //  -----------------------------------------------------------------------
 
+// Get the "tBreak" band
+var tBreak = dates.select("tBreak");
+
+// Get the array length
+var arrayLength = tBreak.toArray().arrayLength(0);
+
+// Create a mask where array length is greater than or equal to 2
+var mask = arrayLength.gte(2);
+
+// Use arrayFlatten to apply the mask to the "tBreak" band
+var filteredDates = tBreak.arrayFlatten([['tBreak']]).arrayMask(mask);
+
+// Print the resulting image with filtered "tBreak" band
+print(filteredDates);
 
 // //  -----------------------------------------------------------------------
 // //  Find the date and severity of the last break detected in 2014
