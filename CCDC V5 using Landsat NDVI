@@ -1,7 +1,6 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
 var geometry = 
     /* color: #d63000 */
-    /* shown: false */
     /* displayProperties: [
       {
         "type": "rectangle"
@@ -59,10 +58,10 @@ var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, st
 
 
 // Regin of interest
-var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
-.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
+// var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
+// .filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
 
-// var studyRegion = geometry;
+var studyRegion = geometry;
 
 Map.centerObject(studyRegion, 6);
 
