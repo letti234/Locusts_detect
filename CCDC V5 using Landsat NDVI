@@ -1,6 +1,7 @@
 /**** Start of imports. If edited, may not auto-convert in the playground. ****/
 var geometry = 
     /* color: #d63000 */
+    /* shown: false */
     /* displayProperties: [
       {
         "type": "rectangle"
@@ -58,10 +59,10 @@ var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, st
 
 
 // Regin of interest
-// var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
-// .filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
+var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
+.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
 
-var studyRegion = geometry;
+// var studyRegion = geometry;
 
 Map.centerObject(studyRegion, 6);
 
@@ -105,26 +106,34 @@ var ccdResults = ee.Algorithms.TemporalSegmentation.Ccdc(ccdParams);
 print(ccdResults, "Results of CCDC estimation");
 
 
-//Export results
-var exportResults = true;
-if (exportResults) {
-    // Create a metadata dictionary with the parameters and arguments used.
-    var metadata = ccdParams;
-    metadata['breakpointBands'] = metadata['breakpointBands'].toString();
-    metadata['startDate'] = startDate;
-    metadata['endDate'] = endDate;
-    metadata['bands'] = bands.toString();
 
-    // Export results, assigning the metadata as image properties.
-    // 
-    Export.image.toAsset({
-        image: ccdResults.set(metadata),
-        region: studyRegion,
-        pyramidingPolicy: {
-            ".default": 'sample'
-        },
-        scale: 30,
-        maxPixels: 2e12
-    });
-}
+var ethSeg = ee.FeatureCollection("users/salem043/Locusts/Segmented_Ethiopia_ADM1");
+print(ethSeg);
+
+
+
+// var filteredCollection = myFeatureCollection.filter(ee.Filter.eq('propertyName', selectedValue));
+
+// // //Export results
+// var exportResults = true;
+// if (exportResults) {
+//     // Create a metadata dictionary with the parameters and arguments used.
+//     var metadata = ccdParams;
+//     metadata['breakpointBands'] = metadata['breakpointBands'].toString();
+//     metadata['startDate'] = startDate;
+//     metadata['endDate'] = endDate;
+//     metadata['bands'] = bands.toString();
+
+//     // Export results, assigning the metadata as image properties.
+//     // 
+//     Export.image.toAsset({
+//         image: ccdResults.set(metadata),
+//         region: studyRegion,
+//         pyramidingPolicy: {
+//             ".default": 'sample'
+//         },
+//         scale: 30,
+//         maxPixels: 2e12
+//     });
+// }
 
