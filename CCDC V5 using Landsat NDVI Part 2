@@ -5,7 +5,7 @@
 
 var palettes = require('users/gena/packages:palettes');
 
-var ccdResults = ee.Image("users/salem043/Locusts/demoCCDC");
+var ccdResults = ee.Image("users/salem043/Locusts/ccdTiles/ccd_tile_4");
 
 //Find change dates and change probability
 var change = ccdResults.select('tBreak');
@@ -31,7 +31,7 @@ var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0])
 
 print(numBreaks, "Number of breaks");
 
-Map.addLayer(numBreaks, {min:0, max:2}, 'Number of breaks 2014');
+Map.addLayer(numBreaks, {min:0, max:3}, 'Number of breaks 2014');
 
 
 //  -----------------------------------------------------------------------
@@ -62,24 +62,9 @@ Map.addLayer(firstChange, timeVisParams, 'first change');
    
 
 //  -----------------------------------------------------------------------
-//  Find the date and severity of the first break detected in 2014
+//  Find the date and severity of the second break detected in 2014
 //  -----------------------------------------------------------------------
 
-
-// Get the "tBreak" band
-var tBreak = dates.select("tBreak");
-
-// Get the array length
-var arrayLength = tBreak.toArray().arrayLength(0);
-
-// Create a mask where array length is greater than or equal to 2
-var mask = arrayLength.gte(2);
-
-// Use the mask to filter the "tBreak" band
-var filteredDates = tBreak.arrayMask(mask);
-
-// Print the resulting image with filtered "tBreak" band
-print(filteredDates);
 
 // //  -----------------------------------------------------------------------
 // //  Find the date and severity of the last break detected in 2014
@@ -98,13 +83,13 @@ print(filteredDates);
 
 
 
-Export.image.toDrive({
-  image: firstChange,
-  scale: 30,
-  description: 'firstChangeDate14',
-  fileFormat: 'GEOTIFF',
-  folder: "Locusts",
-  maxPixels: 2e12,
-});
+// Export.image.toDrive({
+//   image: firstChange,
+//   scale: 30,
+//   description: 'firstChangeDate14',
+//   fileFormat: 'GEOTIFF',
+//   folder: "Locusts",
+//   maxPixels: 2e12,
+// });
 
 
