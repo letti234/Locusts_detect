@@ -110,9 +110,9 @@ print(ccdResults, "Results of CCDC estimation");
 var ethSeg = ee.FeatureCollection("users/salem043/Locusts/Segmented_Ethiopia_ADM1");
 print(ethSeg);
 
-// var seg1 = ethSeg.filter(ee.Filter.eq())
+var seg1 = ethSeg.filter(ee.Filter.eq("id", "00000000000000000000"));
+Map.addLayer(seg1);
 
-// var filteredCollection = myFeatureCollection.filter(ee.Filter.eq('propertyName', selectedValue));
 
 // // //Export results
 // var exportResults = true;
