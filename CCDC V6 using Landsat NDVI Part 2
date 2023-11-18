@@ -5,8 +5,10 @@
 
 var palettes = require('users/gena/packages:palettes');
 
-var ccdResults = ee.Image("users/salem043/Locusts/ccdTiles/ccd_tile_4");
- 
+var ccdResults = ee.Image("users/salem043/Locusts/ccdTiles/ccd_tile_0");
+var ccdResults = ee.Image("users/salem043/Locusts/ccdTiles/ccd_tile_0");
+var ccdResults = ee.Image("users/salem043/Locusts/ccdTiles/ccd_tile_0");
+
 //Find change dates and change probability
 var change = ccdResults.select('tBreak');
 print(change, "All temporal breaks");
