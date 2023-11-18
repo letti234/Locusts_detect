@@ -159,7 +159,7 @@ print(ccd4);
         },
         scale: 30,
         maxPixels: 2e12,
-        description: "Export Tile 0"
+        description: "Export_Tile_0"
     });
 
 
@@ -172,7 +172,7 @@ print(ccd4);
         },
         scale: 30,
         maxPixels: 2e12,
-        description: "Export Tile 1"
+        description: "Export_Tile_1"
     });
 
 
@@ -185,7 +185,7 @@ print(ccd4);
         },
         scale: 30,
         maxPixels: 2e12,
-        description: "Export Tile 2"
+        description: "Export_Tile_2"
     });
 
 
@@ -198,7 +198,7 @@ print(ccd4);
         },
         scale: 30,
         maxPixels: 2e12,
-        description: "Export Tile 3"
+        description: "Export_Tile_3"
     });
 
 
@@ -211,7 +211,7 @@ print(ccd4);
         },
         scale: 30,
         maxPixels: 2e12,
-        description: "Export Tile 4"
+        description: "Export_Tile_4"
     });
 
 
@@ -224,7 +224,7 @@ print(ccd4);
         },
         scale: 30,
         maxPixels: 2e12,
-        description: "Export Tile 5"
+        description: "Export_Tile_5"
     });
 
 
@@ -237,7 +237,7 @@ print(ccd4);
         },
         scale: 30,
         maxPixels: 2e12,
-        description: "Export Tile 6"
+        description: "Export_Tile_6"
     });
 
 
@@ -250,5 +250,5 @@ print(ccd4);
         },
         scale: 30,
         maxPixels: 2e12,
-        description: "Export Tile 7"
+        description: "Export_Tile_7"
     });
