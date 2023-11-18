@@ -13,7 +13,7 @@ print(change, "All temporal breaks");
 var changeProb = ccdResults.select('changeProb');
 
 
-// Set the time range we want to use and get as mask of 
+// Set the time range (2014 disturbances) and get as mask of 
 // places that meet the condition.
 var start = 2013;  
 var end = 2014; 
@@ -25,17 +25,15 @@ var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
 // Map.addLayer(changeProb);
 // print(changeProb);
 
-//Calculate the number of breaks in 2014
-var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0])
-
-
+//Calculate the number of breaks in 2014 by getting length of array
+var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0]);
 print(numBreaks, "Number of breaks");
 
 Map.addLayer(numBreaks, {min:0, max:3}, 'Number of breaks 2014');
 
 
 //  -----------------------------------------------------------------------
-//  Find the date and severity of the first break detected in 2014
+//  Find the date of the first break detected in 2014
 //  -----------------------------------------------------------------------
 
 //Array Pad removes all of the entries that are 0 throughout
@@ -62,23 +60,13 @@ Map.addLayer(firstChange, timeVisParams, 'first change');
    
 
 //  -----------------------------------------------------------------------
-//  Find the date and severity of the second break detected in 2014
+//  Find the date of the second break detected in 2014
 //  -----------------------------------------------------------------------
 
+//I need to mask out all pixels with array length 1.
 
-// //  -----------------------------------------------------------------------
-// //  Find the date and severity of the last break detected in 2014
-// //  -----------------------------------------------------------------------
+var mask = 
 
-// var lastChange = dates
-//     .arraySlice(0, -1)
-//     .arrayFlatten([
-//         ['lastChange']
-//     ])
-//     .selfMask();
-
-
-// // Map.addLayer(lastChange, timeVisParams, 'last change');
 
 
 
