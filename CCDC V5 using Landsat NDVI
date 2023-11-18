@@ -113,9 +113,29 @@ print(ccdResults, "Results of CCDC estimation");
 var ethSeg = ee.FeatureCollection("users/salem043/Locusts/ccdTiles/Segmented_Ethiopia_ADM1");
 
 
+var seg0 = ethSeg.filter(ee.Filter.eq('system:index', '00000000000000000000'));
+var ccd0 = ccdResults.clip(seg0.geometry());
+
+var seg1 = ethSeg.filter(ee.Filter.eq('system:index', '00000000000000000001'));
+var ccd1 = ccdResults.clip(seg1.geometry());
+
+var seg2 = ethSeg.filter(ee.Filter.eq('system:index', '00000000000000000002'));
+var ccd2 = ccdResults.clip(seg2.geometry());
+
+var seg3 = ethSeg.filter(ee.Filter.eq('system:index', '00000000000000000003'));
+var ccd3 = ccdResults.clip(seg3.geometry());
+
 var seg4 = ethSeg.filter(ee.Filter.eq('system:index', '00000000000000000004'));
-Map.addLayer(seg4);
 var ccd4 = ccdResults.clip(seg4.geometry());
+
+var seg5 = ethSeg.filter(ee.Filter.eq('system:index', '00000000000000000005'));
+var ccd5 = ccdResults.clip(seg5.geometry());
+
+var seg6 = ethSeg.filter(ee.Filter.eq('system:index', '00000000000000000006'));
+var ccd6 = ccdResults.clip(seg6.geometry());
+
+var seg7 = ethSeg.filter(ee.Filter.eq('system:index', '00000000000000000007'));
+var ccd7 = ccdResults.clip(seg7.geometry());
 
 print(ccd4);
 
@@ -123,8 +143,6 @@ print(ccd4);
 //  Export segmented results
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-var exportResults = true;
-if (exportResults) {
     // Create a metadata dictionary with the parameters and arguments used.
     var metadata = ccdParams;
     metadata['breakpointBands'] = metadata['breakpointBands'].toString();
@@ -132,8 +150,59 @@ if (exportResults) {
     metadata['endDate'] = endDate;
     metadata['bands'] = bands.toString();
 
-    // Export results, assigning the metadata as image properties.
-    // 
+//Tile 0 export
+    Export.image.toAsset({
+        image: ccd0.set(metadata),
+        region: seg0,
+        pyramidingPolicy: {
+            ".default": 'sample'
+        },
+        scale: 30,
+        maxPixels: 2e12,
+        description: "Export Tile 0"
+    });
+
+
+//Tile 1 export
+    Export.image.toAsset({
+        image: ccd1.set(metadata),
+        region: seg1,
+        pyramidingPolicy: {
+            ".default": 'sample'
+        },
+        scale: 30,
+        maxPixels: 2e12,
+        description: "Export Tile 1"
+    });
+
+
+//Tile 2 export
+    Export.image.toAsset({
+        image: ccd2.set(metadata),
+        region: seg2,
+        pyramidingPolicy: {
+            ".default": 'sample'
+        },
+        scale: 30,
+        maxPixels: 2e12,
+        description: "Export Tile 2"
+    });
+
+
+//Tile 3 export
+    Export.image.toAsset({
+        image: ccd3.set(metadata),
+        region: seg3,
+        pyramidingPolicy: {
+            ".default": 'sample'
+        },
+        scale: 30,
+        maxPixels: 2e12,
+        description: "Export Tile 3"
+    });
+
+
+//Tile 4 export
     Export.image.toAsset({
         image: ccd4.set(metadata),
         region: seg4,
@@ -141,7 +210,45 @@ if (exportResults) {
             ".default": 'sample'
         },
         scale: 30,
-        maxPixels: 2e12
+        maxPixels: 2e12,
+        description: "Export Tile 4"
     });
-}
 
+
+//Tile 5 export
+    Export.image.toAsset({
+        image: ccd5.set(metadata),
+        region: seg5,
+        pyramidingPolicy: {
+            ".default": 'sample'
+        },
+        scale: 30,
+        maxPixels: 2e12,
+        description: "Export Tile 5"
+    });
+
+
+//Tile 6 export
+    Export.image.toAsset({
+        image: ccd6.set(metadata),
+        region: seg6,
+        pyramidingPolicy: {
+            ".default": 'sample'
+        },
+        scale: 30,
+        maxPixels: 2e12,
+        description: "Export Tile 6"
+    });
+
+
+//Tile 7 export
+    Export.image.toAsset({
+        image: ccd7.set(metadata),
+        region: seg7,
+        pyramidingPolicy: {
+            ".default": 'sample'
+        },
+        scale: 30,
+        maxPixels: 2e12,
+        description: "Export Tile 7"
+    });
