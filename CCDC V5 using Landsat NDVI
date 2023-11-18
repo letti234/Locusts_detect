@@ -105,35 +105,43 @@ var ccdParams = {
 var ccdResults = ee.Algorithms.TemporalSegmentation.Ccdc(ccdParams);
 print(ccdResults, "Results of CCDC estimation");
 
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  Segmenting results for export as an ee asset
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 var ethSeg = ee.FeatureCollection("users/salem043/Locusts/Segmented_Ethiopia_ADM1");
-print(ethSeg);
-
-var seg1 = ethSeg.filter(ee.Filter.eq("id", "00000000000000000000"));
-Map.addLayer(seg1);
 
 
-// // //Export results
-// var exportResults = true;
-// if (exportResults) {
-//     // Create a metadata dictionary with the parameters and arguments used.
-//     var metadata = ccdParams;
-//     metadata['breakpointBands'] = metadata['breakpointBands'].toString();
-//     metadata['startDate'] = startDate;
-//     metadata['endDate'] = endDate;
-//     metadata['bands'] = bands.toString();
+var seg4 = ethSeg.filter(ee.Filter.eq('system:index', '00000000000000000004'));
+Map.addLayer(seg4);
+var ccd4 = ccdResults.clip(seg4.geometry());
 
-//     // Export results, assigning the metadata as image properties.
-//     // 
-//     Export.image.toAsset({
-//         image: ccdResults.set(metadata),
-//         region: studyRegion,
-//         pyramidingPolicy: {
-//             ".default": 'sample'
-//         },
-//         scale: 30,
-//         maxPixels: 2e12
-//     });
-// }
+print(ccd4);
+
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  Export segmented results
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+var exportResults = true;
+if (exportResults) {
+    // Create a metadata dictionary with the parameters and arguments used.
+    var metadata = ccdParams;
+    metadata['breakpointBands'] = metadata['breakpointBands'].toString();
+    metadata['startDate'] = startDate;
+    metadata['endDate'] = endDate;
+    metadata['bands'] = bands.toString();
+
+    // Export results, assigning the metadata as image properties.
+    // 
+    Export.image.toAsset({
+        image: ccd4.set(metadata),
+        region: seg4,
+        pyramidingPolicy: {
+            ".default": 'sample'
+        },
+        scale: 30,
+        maxPixels: 2e12
+    });
+}
 
