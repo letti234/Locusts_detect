@@ -48,11 +48,11 @@ var palettes = require('users/gena/packages:palettes');
 
 
 //Forward and backward paths from HYSPLIT
-var fPaths = ee.FeatureCollection("users/salem043/Locusts/fwd_traj_output");
-var bPaths = ee.FeatureCollection("users/salem043/Locusts/bwd_traj_output");
+var fPaths = ee.FeatureCollection("users/salem043/Locusts/HYSPLIT/fwd_traj_output");
+var bPaths = ee.FeatureCollection("users/salem043/Locusts/HYSPLIT/bwd_traj_output");
 
 //FAO sightings data for 2014 only
-var swarms = ee.FeatureCollection("users/salem043/Locusts/Swarm_Master");
+var swarms = ee.FeatureCollection("users/salem043/Locusts/FAO_data/Swarm_Master");
 var startDateMin = ee.Date('2014-01-01').millis();
 var startDateMax = ee.Date('2014-12-31').millis();
 var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, startDateMax));
@@ -110,7 +110,7 @@ print(ccdResults, "Results of CCDC estimation");
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-var ethSeg = ee.FeatureCollection("users/salem043/Locusts/Segmented_Ethiopia_ADM1");
+var ethSeg = ee.FeatureCollection("users/salem043/Locusts/ccdTiles/Segmented_Ethiopia_ADM1");
 
 
 var seg4 = ethSeg.filter(ee.Filter.eq('system:index', '00000000000000000004'));
