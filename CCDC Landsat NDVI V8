@@ -157,6 +157,7 @@ var firstMag = magnitude
     ])
     .selfMask();
  
+Map.addLayer(firstMag, timeVisParams, 'first mag');
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  Get date of second change in array
