@@ -135,13 +135,19 @@ Map.addLayer(firstChange, timeVisParams, 'first change');
 //  -----------------------------------------------------------------------
 
 //From original object, mask out all pixels with array length less than 2
-var withTwo = ccdResults.arrayMask(ccdResults.gt(0));
 
+var change = ccdResults.updateMask(
+  ccdResults.select('tBreak').arrayLength(0).gt(1)
+);
 
-//Find change dates and change probability
-var change = withTwo.select('tBreak');
-// print(change, "All temporal breaks");
-var changeProb = withTwo.select('changeProb');
+var changeProb = ccdResults.updateMask(
+  ccdResults.select('changePrb').arrayLength(0).gt(1)
+);
+
+// //Find change dates and change probability
+// var change = withTwo.select('tBreak');
+// // print(change, "All temporal breaks");
+// var changeProb = withTwo.select('changeProb');
 
 
 // Set the time range (2014 disturbances) and get as mask of 
