@@ -136,7 +136,6 @@ var firstChange = dates
     max: end
 };
 
-Map.addLayer(firstChange, timeVisParams, 'first change');
 
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -157,23 +156,42 @@ var firstMag = magnitude
     ])
     .selfMask();
  
-Map.addLayer(firstMag, {}, 'first mag');
-
-
-
-
-
-
-
+// Map.addLayer(firstMag, {}, 'first mag');
 
 
 
 
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//  Get date of second change in array
+//  Get date of last change in array
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+//If last change = first change then we only need to use the first
+
+
+var lastChange = dates
+    .arraySlice(0, -1)
+    .arrayFlatten([
+        ['lastChange']
+    ])
+    .selfMask();
+    
+    
+    
+Map.addLayer(lastChange, timeVisParams, 'Last change');
+Map.addLayer(firstChange, timeVisParams, 'first change');
+
+
+
+
+
+
+
+
+
+
 
 // var datesTwo = dates.updateMask(
 //   dates.arrayLength(0).gt(1)
-// )
+// );
+
