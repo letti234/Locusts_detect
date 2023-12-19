@@ -89,7 +89,7 @@ var palettes = require('users/gena/packages:palettes');
 //   //changeProb
 
 var ccdResults = ee.Image("users/salem043/Locusts/ccdTiles/ccd_tile_4");
-
+print(ccdResults, "Full CCDC results");
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  Explore data
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -147,7 +147,7 @@ Map.addLayer(firstChange, timeVisParams, 'first change');
 var magnitude = ccdResults
     .select('NDVI_magnitude')   //Select NDVI magnitude
     .arrayMask(mask) //Mask properties from before: 2014 obs and change pr = 1
-    .arrayPad([1]);
+    .arrayPad([1]);  //Mask out zero length arrays
 
 //Get magnitude of the first disturbance
 var firstMag = magnitude
@@ -157,29 +157,23 @@ var firstMag = magnitude
     ])
     .selfMask();
  
-Map.addLayer(firstMag, timeVisParams, 'first mag');
+Map.addLayer(firstMag, {}, 'first mag');
+
+
+
+
+
+
+
+
+
+
+
 
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //  Get date of second change in array
 //  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-var datesTwo = dates.updateMask(
-  dates.arrayLength(0).gt(1)
-)
-//Use dates object to get layer of first date of disturbance
-var secondChange = datesTwo
-    .arraySlice(0, 0, 1)
-    .arrayFlatten([
-        ['firstChange']
-    ])
-    .selfMask();
- 
- var timeVisParams = {
-    palette: palettes.colorbrewer.YlOrRd[9],
-    min: start,
-    max: end
-};
-
-Map.addLayer(secondChange, timeVisParams, 'second change');
-
-   
+// var datesTwo = dates.updateMask(
+//   dates.arrayLength(0).gt(1)
+// )
