@@ -141,7 +141,7 @@ var change = ccdResults.updateMask(
 );
 
 var changeProb = ccdResults.updateMask(
-  ccdResults.select('changePrb').arrayLength(0).gt(1)
+  ccdResults.select('changeProb').arrayLength(0).gt(1)
 );
 
 // //Find change dates and change probability
