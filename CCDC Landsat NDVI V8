@@ -1,0 +1,200 @@
+
+
+// //  -----------------------------------------------------------------------
+// //  Call data
+// //  -----------------------------------------------------------------------
+
+
+//Resources from the book chapter
+var utils = require(
+    'users/parevalo_bu/gee-ccdc-tools:ccdcUtilities/api');
+
+var palettes = require('users/gena/packages:palettes');
+
+
+//Forward and backward paths from HYSPLIT
+var fPaths = ee.FeatureCollection("users/salem043/Locusts/HYSPLIT/fwd_traj_output");
+var bPaths = ee.FeatureCollection("users/salem043/Locusts/HYSPLIT/bwd_traj_output");
+
+//FAO sightings data for 2014 only
+var swarms = ee.FeatureCollection("users/salem043/Locusts/FAO_data/Swarm_Master");
+var startDateMin = ee.Date('2014-01-01').millis();
+var startDateMax = ee.Date('2014-12-31').millis();
+var swarms = swarms.filter(ee.Filter.rangeContains('STARTDATE', startDateMin, startDateMax));
+
+
+// Regin of interest
+var studyRegion = ee.FeatureCollection("FAO/GAUL/2015/level0")
+.filter(ee.Filter.eq("ADM0_NAME", "Ethiopia"));
+
+// var studyRegion = geometry;
+
+Map.centerObject(studyRegion, 6);
+
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  CCDC algorithm with MODIS NDVI
+//  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// Define start, end dates and Landsat bands to use.
+var startDate = '2000-01-01';
+var endDate = '2014-01-01';
+var bands = ['NDVI', 'SWIR1', 'GREEN'];
+
+
+// Retrieve all clear, Landsat 4, 5, 7 and 8 observations (Collection 2, Tier 1).
+var filteredLandsat = utils.Inputs.getLandsat({
+        collection: 2
+    })
+    .filterBounds(studyRegion)
+    .filterDate(startDate, endDate)
+    .select(bands)
+    .map(function(image){return image.clip(studyRegion)});
+
+print(filteredLandsat.first());
+
+
+
+// Set CCD params to use.
+var ccdParams = {
+    breakpointBands: ['NDVI', 'SWIR1', 'GREEN'],
+    tmaskBands: ['SWIR1', 'GREEN'],
+    minObservations: 6,
+    chiSquareProbability: 0.99,
+    minNumOfYearsScaler: 1.33,
+    dateFormat: 1,
+    lambda: 0.002,
+    maxIterations: 10000,
+    collection: filteredLandsat
+};
+
+var ccdResults = ee.Algorithms.TemporalSegmentation.Ccdc(ccdParams);
+print(ccdResults, "Results of CCDC estimation");
+
+
+// //  -----------------------------------------------------------------------
+// //  Determine number of breaks in 2014
+// //  -----------------------------------------------------------------------
+
+var palettes = require('users/gena/packages:palettes');
+
+
+//Find change dates and change probability
+var change = ccdResults.select('tBreak');
+print(change, "All temporal breaks");
+var changeProb = ccdResults.select('changeProb');
+
+
+// Set the time range (2014 disturbances) and get as mask of 
+// places that meet the condition.
+var start = 2013;  
+var end = 2014; 
+
+//Create a mask of only dates within range and changeProb equal to 1
+var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
+1));
+
+// Map.addLayer(changeProb);
+// print(changeProb);
+
+//Calculate the number of breaks in 2014 by getting length of array
+var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0]);
+print(numBreaks, "Number of breaks");
+
+// Map.addLayer(numBreaks, {min:0, max:3}, 'Number of breaks 2014');
+
+
+//  -----------------------------------------------------------------------
+//  Find the date of the first break detected in 2014
+//  -----------------------------------------------------------------------
+
+//Array Pad removes all of the entries that are 0 throughout
+var dates = change.arrayMask(mask).arrayPad([1]);
+
+print(dates);
+
+//Use dates object to get layer of first date of disturbance
+var firstChange = dates
+    .arraySlice(0, 0, 1)
+    .arrayFlatten([
+        ['firstChange']
+    ])
+    .selfMask();
+ 
+ var timeVisParams = {
+    palette: palettes.colorbrewer.YlOrRd[9],
+    min: start,
+    max: end
+};
+
+Map.addLayer(firstChange, timeVisParams, 'first change');
+
+   
+
+//  -----------------------------------------------------------------------
+//  Find the date of the second break detected in 2014
+//  -----------------------------------------------------------------------
+
+//From original object, mask out all pixels with array length less than 2
+
+var change = ccdResults.updateMask(
+  ccdResults.select('tBreak').arrayLength(0).gt(1)
+);
+
+var changeProb = ccdResults.updateMask(
+  ccdResults.select('changeProb').arrayLength(0).gt(1)
+);
+
+// //Find change dates and change probability
+// var change = withTwo.select('tBreak');
+// // print(change, "All temporal breaks");
+// var changeProb = withTwo.select('changeProb');
+
+
+// Set the time range (2014 disturbances) and get as mask of 
+// places that meet the condition.
+var start = 2013;  
+var end = 2014; 
+
+//Create a mask of only dates within range and changeProb equal to 1
+var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
+1));
+
+// Map.addLayer(changeProb);
+// print(changeProb);
+
+//Array Pad removes all of the entries that are 0 throughout
+var dates = change.arrayMask(mask).arrayPad([1]);
+
+print(dates);
+
+//Use dates object to get layer of first date of disturbance
+var secondChange = dates
+    .arraySlice(0, 1, 2)
+    .arrayFlatten([
+        ['secondChange']
+    ])
+    .selfMask();
+ 
+Map.addLayer(secondChange);
+
+Export.image.toDrive({
+  image: firstChange,
+  scale: 30,
+  description: 'firstChangeDate14',
+  fileFormat: 'GEOTIFF',
+  folder: "Locusts",
+  maxPixels: 2e12,
+});
+
+
+
+Export.image.toDrive({
+  image: secondChange,
+  scale: 30,
+  description: 'secondChangeDate14',
+  fileFormat: 'GEOTIFF',
+  folder: "Locusts",
+  maxPixels: 2e12,
+});
+
+
