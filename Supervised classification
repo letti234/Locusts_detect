@@ -1,0 +1,30 @@
+///Step 1: Call on Landsat NDVI and exact sightings data subset to ETH
+
+
+
+//  Step 2: Build a composite NDVI where each grid-cell represents the NDVI of 
+//  the grid-cell one month before the sighting date
+
+
+
+//  Step 3: Build a composite NDVI where each grid-cell represents the NDVI of
+//  the grid-cell the month after the sighting date
+
+
+//  Step 3: compare differences in NDVI's and eliminate cases where they do not change
+
+
+// Step 4: Select a training sample 
+
+
+
+// Step 5: Use the post-exposure composite to train the algorithm to identify the spectral signatures
+// of locust-affected areas
+
+
+
+// Step 6: Predict locust-affected areas and perform reliability checks with remaining data
+
+
+
+
