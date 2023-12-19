@@ -5,9 +5,8 @@
 
 var palettes = require('users/gena/packages:palettes');
 
-var ccdResults = ee.Image("users/salem043/Locusts/ccdTiles/ccd_tile_0");
-var ccdResults = ee.Image("users/salem043/Locusts/ccdTiles/ccd_tile_0");
-var ccdResults = ee.Image("users/salem043/Locusts/ccdTiles/ccd_tile_0");
+var ccdResults = ee.Image("users/salem043/Locusts/ccdTiles/ccd_tile_4");
+
 
 //Find change dates and change probability
 var change = ccdResults.select('tBreak');
@@ -31,7 +30,7 @@ var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
 var numBreaks = mask.arrayReduce(ee.Reducer.sum(), [0]);
 print(numBreaks, "Number of breaks");
 
-Map.addLayer(numBreaks, {min:0, max:3}, 'Number of breaks 2014');
+// Map.addLayer(numBreaks, {min:0, max:3}, 'Number of breaks 2014');
 
 
 //  -----------------------------------------------------------------------
@@ -65,21 +64,64 @@ Map.addLayer(firstChange, timeVisParams, 'first change');
 //  Find the date of the second break detected in 2014
 //  -----------------------------------------------------------------------
 
-//I need to mask out all pixels with array length 1.
-
-var mask = 
-
-
-
+//From original object, mask out all pixels with array length less than 2
+var withTwo = ccdResults.updateMask(
+  ccdResults.arrayLength(0).gt(1)
+);
 
 
-// Export.image.toDrive({
-//   image: firstChange,
-//   scale: 30,
-//   description: 'firstChangeDate14',
-//   fileFormat: 'GEOTIFF',
-//   folder: "Locusts",
-//   maxPixels: 2e12,
-// });
+//Find change dates and change probability
+var change = withTwo.select('tBreak');
+print(change, "All temporal breaks");
+var changeProb = ccdResults.select('changeProb');
+
+
+// Set the time range (2014 disturbances) and get as mask of 
+// places that meet the condition.
+var start = 2013;  
+var end = 2014; 
+
+//Create a mask of only dates within range and changeProb equal to 1
+var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
+1));
+
+// Map.addLayer(changeProb);
+// print(changeProb);
+
+//Array Pad removes all of the entries that are 0 throughout
+var dates = change.arrayMask(mask).arrayPad([1]);
+
+print(dates);
+
+//Use dates object to get layer of first date of disturbance
+var secondChange = dates
+    .arraySlice(0, 1, 2)
+    .arrayFlatten([
+        ['secondChange']
+    ])
+    .selfMask();
+ 
+print(secondChange);
+
+
+Export.image.toDrive({
+  image: firstChange,
+  scale: 30,
+  description: 'firstChangeDate14',
+  fileFormat: 'GEOTIFF',
+  folder: "Locusts",
+  maxPixels: 2e12,
+});
+
+
+
+Export.image.toDrive({
+  image: secondChange,
+  scale: 30,
+  description: 'secondChangeDate14',
+  fileFormat: 'GEOTIFF',
+  folder: "Locusts",
+  maxPixels: 2e12,
+});
 
 
