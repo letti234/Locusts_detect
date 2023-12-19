@@ -101,7 +101,6 @@ var secondChange = dates
     ])
     .selfMask();
  
-print(secondChange);
 
 
 Export.image.toDrive({
