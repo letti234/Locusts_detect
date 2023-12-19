@@ -67,14 +67,15 @@ var ccdParams = {
     collection: filteredLandsat
 };
 
+var ccdResults = ee.Algorithms.TemporalSegmentation.Ccdc(ccdParams);
+print(ccdResults, "Results of CCDC estimation");
+
 
 // //  -----------------------------------------------------------------------
 // //  Determine number of breaks in 2014
 // //  -----------------------------------------------------------------------
 
 var palettes = require('users/gena/packages:palettes');
-
-var ccdResults = ee.Image("users/salem043/Locusts/ccdTiles/ccd_tile_4");
 
 
 //Find change dates and change probability
