@@ -94,8 +94,8 @@ var changeProb = ccdResults.select('changeProb');
 
 // Set the time range (2014 disturbances) and get as mask of 
 // places that meet the condition.
-var start = 2013;  
-var end = 2014; 
+var start = 2014;  
+var end = 2015; 
 
 //Create a mask of only dates within range and changeProb equal to 1
 var mask = change.gt(start).and(change.lte(end)).and(changeProb.eq(
@@ -179,6 +179,7 @@ Export.image.toDrive({
   fileFormat: 'GEOTIFF',
   folder: "Locusts",
   maxPixels: 2e12,
+  region: studyRegion
 });
 
 Export.image.toDrive({
@@ -188,6 +189,7 @@ Export.image.toDrive({
   fileFormat: 'GEOTIFF',
   folder: "Locusts",
   maxPixels: 2e12,
+  region: studyRegion
 });
 
 
@@ -199,6 +201,7 @@ Export.image.toDrive({
   fileFormat: 'GEOTIFF',
   folder: "Locusts",
   maxPixels: 2e12,
+  region: studyRegion
 });
 
 
