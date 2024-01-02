@@ -171,6 +171,11 @@ var lastChange = dates
 Map.addLayer(lastChange, timeVisParams, 'Last change');
 Map.addLayer(firstChange, timeVisParams, 'first change');
 
+var firstChange = firstChange.map(function(image){return image.clip(studyRegion)});
+var lastChange = lastChange.map(function(image){return image.clip(studyRegion)});
+var firstMag = firstMag.map(function(image){return image.clip(studyRegion)});
+
+
 
 Export.image.toDrive({
   image: firstChange,
